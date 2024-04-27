@@ -28,10 +28,10 @@ int Window::createSurface(VkInstance& instance)
 
 int Window::update()
 {
-  while (!glfwWindowShouldClose(m_GLFWWindow))
-  {
-    glfwPollEvents();
-  }
+  if (glfwWindowShouldClose(m_GLFWWindow)) 
+    return 0;
+
+  glfwPollEvents();
 
   return 1;
 }

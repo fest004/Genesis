@@ -6,6 +6,5 @@ int main()
   printf("Genesis is born \n");
 
   Genesis genesis;
-  genesis.init();
   genesis.run();
 }

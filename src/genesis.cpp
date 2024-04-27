@@ -1,24 +1,18 @@
 #include "genesis.hpp"
 
-
 void Genesis::run()
 {
-  init();
-
-  while (m_IsRunning)
-  {
-    loop();
-  }
-
+  if (DEBUG && init()) { GenLogInfo("Initializition succeeded!"); }
+  loop();
   cleanup();
 
 }
 
 int Genesis::init()
 {
-  
+  m_Logger.Init();
   m_Window.createWindow();
-  // m_Window.createSurface(VkInstance &instance) //TODO maybe create instance first and pass it to createsurface as constructor arg to make it a reference
+  m_Vulkan.initVulkan();
 
   return 1;
 }
@@ -26,13 +20,16 @@ int Genesis::init()
 
 void Genesis::loop()
 {
-  m_Window.update();
-
+  while (m_IsRunning)
+  {
+    m_IsRunning = m_Window.update();
+  }
 }
 
 void Genesis::cleanup()
 {
-
+  m_Vulkan.cleanup();
+  m_Logger.Shutdown();
 }
 
 
