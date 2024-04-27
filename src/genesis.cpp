@@ -28,11 +28,6 @@ void Genesis::loop()
   {
     m_IsRunning = m_Window.update();
 
-    if (counter > 1000)
-    {
-      m_IsRunning = 0; 
-    }
-    counter++;
   }
 }
 

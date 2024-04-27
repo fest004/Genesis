@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 #include "instance.hpp"
 #include "validationLayers.hpp"
+#include "physicalDevice.hpp"
 
 
 
@@ -23,5 +24,6 @@ class Vulkan
     VkInstance m_VkInstance;
     const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
     VkDebugUtilsMessengerEXT m_DebugMessenger;
+    VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 
 };

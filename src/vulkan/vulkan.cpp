@@ -5,6 +5,7 @@ int Vulkan::initVulkan()
 {
   createInstance(m_VkInstance, m_ValidationLayers);
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
+  pickPhysicalDevice(m_VkInstance);
 
   return 1;
 }
