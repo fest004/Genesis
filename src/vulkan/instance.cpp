@@ -3,11 +3,18 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <algorithm>
-
+#include "validationLayers.hpp"
 //First VK interfacing I do, will be overcommented for sake of learning as I go
 
-int createInstance(VkInstance& instance)
+int createInstance(VkInstance& instance, const std::vector<const char*>& validationLayers)
 {
+  if (DEBUG && !checkValidationLayers(validationLayers))
+  {
+    GenLogCritical("Requested validation layers not supported! Error in file: validationLayers.cpp");
+    return 0;
+  }
+
+
   //Structs are used to pass data instead of eternally long list of function paramaters
   VkApplicationInfo appInfo{}; //appInfo struct, use {} to initialize unset fields to 0 values
   appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO; //We choose the type of appInfo to match the one we want
@@ -29,23 +36,30 @@ int createInstance(VkInstance& instance)
      to tell Vulkan about our glfw extensions used to render to a window
 
   */
-  uint32_t glfwExtensionCount = 0; //Nr of extensions
-  vkEnumerateInstanceExtensionProperties(nullptr, &glfwExtensionCount, nullptr); //Just the nr of extensions supported
-  std::vector<VkExtensionProperties> extensions(glfwExtensionCount);
+  auto extensions = getRequiredExtensions();
 
-  vkEnumerateInstanceExtensionProperties(nullptr, &glfwExtensionCount, extensions.data());
-
-  const char** glfwExtensions; //Their names
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+  createInstanceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+  createInstanceInfo.ppEnabledExtensionNames = extensions.data();
 
 
-  //Self made function to check wether or not the glfw extensions needed are supported
-  checkExternalExtensions(glfwExtensions, glfwExtensionCount, extensions);
 
-  createInstanceInfo.enabledExtensionCount = glfwExtensionCount;
-  createInstanceInfo.ppEnabledExtensionNames = glfwExtensions;
-  createInstanceInfo.enabledLayerCount = 0;
+  //Enable validation layers if DEBUG is on
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+  if (DEBUG)
+  {
+    createInstanceInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInstanceInfo.ppEnabledLayerNames = validationLayers.data();
 
+    populateDebugMessengerCreateInfo(debugCreateInfo);
+    createInstanceInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+  }
+  else 
+  {
+    createInstanceInfo.enabledLayerCount = 0;
+    createInstanceInfo.pNext = nullptr;
+  }
+
+  
 
   //Now we have all the info we need to actually create the instance with the result stored at &instance which is m_Instance from the Vulkan class
   if (vkCreateInstance(&createInstanceInfo, nullptr, &instance) != VK_SUCCESS)
@@ -85,4 +99,24 @@ int checkExternalExtensions(const char** externalExtensions, int arrSize, std::v
     }
     return success;
 }
+
+std::vector<const char*> getRequiredExtensions()
+{
+  uint32_t glfwExtensionCount = 0;
+  const char** glfwExtensions;
+  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+  std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+  if (DEBUG)
+  {
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
+
+  return extensions;
+}
+
+
+
+
 

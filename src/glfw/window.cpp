@@ -22,6 +22,7 @@ int Window::createSurface(VkInstance& instance)
 {
   VkResult res = glfwCreateWindowSurface(instance, m_GLFWWindow, NULL, &m_Surface);
 
+  if (DEBUG && !res) GenLogCritical("Failed to create window surface! Error in window.cpp");
   return res;
 }
 

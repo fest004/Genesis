@@ -28,6 +28,7 @@
 #define GenLogCritical(...)                                                     \
   if (spdlog::get(GENLOG_DEFAULT_LOGGER_NAME) != nullptr) {                     \
     spdlog::get(GENLOG_DEFAULT_LOGGER_NAME)->critical(__VA_ARGS__);             \
+    throw std::runtime_error("");                                               \
   }
 #else
 // Disable logging for release builds

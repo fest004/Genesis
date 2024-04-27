@@ -3,7 +3,8 @@
 
 int Vulkan::initVulkan()
 {
-  createInstance(m_VkInstance);
+  createInstance(m_VkInstance, m_ValidationLayers);
+  setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
 
   return 1;
 }
@@ -12,6 +13,17 @@ int Vulkan::initVulkan()
 void Vulkan::cleanup()
 {
   //Do stuff
+if (DEBUG)
+{
+  DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+}
+
   vkDestroyInstance(m_VkInstance, nullptr);
 }
+
+
+
+
+
+
 

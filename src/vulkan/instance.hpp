@@ -5,6 +5,7 @@
 #include <cstdio>
 #include "../core.h"
 
-int createInstance(VkInstance& instance);
+int createInstance(VkInstance& instance, const std::vector<const char*>& validationLayers);
 int checkExternalExtensions(const char** glfwExtensions, int arrSize, std::vector<VkExtensionProperties>& extensions);
+std::vector<const char*> getRequiredExtensions();
 
