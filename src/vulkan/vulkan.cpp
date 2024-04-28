@@ -5,7 +5,8 @@ int Vulkan::initVulkan()
 {
   createInstance(m_VkInstance, m_ValidationLayers);
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
-  pickPhysicalDevice(m_VkInstance);
+  pickPhysicalDevice(m_VkInstance, m_PhysicalDevice);
+  createLogicalDevice(m_PhysicalDevice, m_Device, m_GraphicsQueue, m_ValidationLayers);
 
   return 1;
 }
@@ -13,11 +14,13 @@ int Vulkan::initVulkan()
 
 void Vulkan::cleanup()
 {
-  //Do stuff
-if (DEBUG)
-{
-  DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
-}
+
+  vkDestroyDevice(m_Device, nullptr);
+
+  if (DEBUG)
+  {
+    DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+  }
 
   vkDestroyInstance(m_VkInstance, nullptr);
 }

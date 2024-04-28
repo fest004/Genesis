@@ -8,6 +8,6 @@
 
 
 bool isDeviceSuitable(VkPhysicalDevice device);
-VkPhysicalDevice pickPhysicalDevice(VkInstance instance);
+int pickPhysicalDevice(VkInstance instance, VkPhysicalDevice& physicalDevice);
 bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
 int getDeviceSuitability(VkPhysicalDevice physicalDevice);

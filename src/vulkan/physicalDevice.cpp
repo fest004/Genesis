@@ -1,7 +1,7 @@
 #include "physicalDevice.hpp"
 
 //Pick a GPU we can use for our intentions
-VkPhysicalDevice pickPhysicalDevice(VkInstance instance)
+int pickPhysicalDevice(VkInstance instance, VkPhysicalDevice& physicalDevice)
 {
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -26,13 +26,14 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance)
   // If best device is suitable we can just return it
   if (candidates.rbegin()->first > 0) 
   {
-      return candidates.rbegin()->second;
+      physicalDevice = candidates.rbegin()->second;
+      return 1;
   } 
 
   //If we dont find a good device, we exit
   GenLogCritical("No devices fit our requirements!");
 
-  return nullptr; //Wont ever reach here
+  return 0; //Wont ever reach here
 }
 
 bool isDeviceSuitable(VkPhysicalDevice device) 
