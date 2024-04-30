@@ -1,7 +1,14 @@
 #include "physicalDevice.hpp"
+#include "queues.hpp"
+#include "vulkan.hpp"
+#include <iostream>
+#include <limits>
+#include <set>
+#include <vulkan/vulkan_core.h>
+#include "swapchain.hpp"
 
 //Pick a GPU we can use for our intentions
-int pickPhysicalDevice(VkInstance instance, VkPhysicalDevice& physicalDevice)
+int pickPhysicalDevice(VkInstance& instance, VkDevice& device, VkSurfaceKHR& surface, VkPhysicalDevice& physicalDevice, std::vector<const char*> deviceExtensions)
 {
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -9,43 +16,62 @@ int pickPhysicalDevice(VkInstance instance, VkPhysicalDevice& physicalDevice)
   if (deviceCount < 1)
     GenLogCritical("No physical devices found with Vulkan Support! Exiting...");
 
+  std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
 
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-
-  //Map orders ratings for us automatically
-  std::multimap<int, VkPhysicalDevice> candidates;
-
-  for (const auto& device : devices) 
+  for (const auto& physDevice : physicalDevices) 
   {
-      int score = getDeviceSuitability(device);
-      candidates.insert(std::make_pair(score, device));
+    if (isDeviceSuitable(physDevice, surface, deviceExtensions)) 
+    {
+      physicalDevice = physDevice;
+      return 1;
+    }
   }
 
-  // If best device is suitable we can just return it
-  if (candidates.rbegin()->first > 0) 
-  {
-      physicalDevice = candidates.rbegin()->second;
-      return 1;
-  } 
-
-  //If we dont find a good device, we exit
+  // If we don't find a suitable device, we exit
   GenLogCritical("No devices fit our requirements!");
-
-  return 0; //Wont ever reach here
+  return 0;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice device) 
+bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    QueueFamilyIndices indices = findQueueFamilies(device, surface);
 
-    return indices.isComplete();
+    bool extensionsSupported = checkDeviceExtensionSupport(device, deviceExtensions);
+
+    bool swapChainAdequate = false;
+    if (extensionsSupported)
+    {
+      SwapChainSupportDetails swapChainSupport = querySwapchainSupport(device, surface);
+      swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    }
+    
+    // GenLogInfo(...)
+
+    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+}
+
+bool checkDeviceExtensionSupport(VkPhysicalDevice& device, std::vector<const char*> deviceExtensions)
+{
+  uint32_t extensionCount;
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+  for (const auto& extension : availableExtensions)
+  {
+    requiredExtensions.erase(extension.extensionName);
+  }
+
+  return requiredExtensions.empty();
 }
 
 
 //Function that rates how good our device is for our needs
-int getDeviceSuitability(VkPhysicalDevice physicalDevice)
+int getDeviceSuitability(VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions)
 {
   VkPhysicalDeviceProperties deviceProperties;
   vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
@@ -64,11 +90,10 @@ int getDeviceSuitability(VkPhysicalDevice physicalDevice)
   if (!deviceFeatures.geometryShader)
     return 0;
 
-   if (!isDeviceSuitable(physicalDevice))
+   if (!isDeviceSuitable(physicalDevice, surface, deviceExtensions))
     return 0;
 
 
   return score;
 }
-
 

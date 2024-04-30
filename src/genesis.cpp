@@ -12,7 +12,6 @@ void Genesis::run()
 int Genesis::init()
 {
   m_Logger.Init();
-  m_Window.createWindow();
   m_Vulkan.initVulkan();
 
   GenLogTrace("Genesis Initialization succeeded!");
@@ -23,10 +22,9 @@ int Genesis::init()
 
 void Genesis::loop()
 {
-  int counter = 0;
   while (m_IsRunning)
   {
-    m_IsRunning = m_Window.update();
+    m_IsRunning = m_Vulkan.update();
 
   }
 }

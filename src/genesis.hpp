@@ -1,4 +1,4 @@
-#include "glfw/window.hpp"
+#include "vulkan/window.hpp"
 #include "vulkan/vulkan.hpp"
 #include "core.h"
 
@@ -16,7 +16,6 @@ private:
 
 
   Vulkan m_Vulkan;
-  Window m_Window;
   bool m_IsRunning = true;
   Log m_Logger;
 

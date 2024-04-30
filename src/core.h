@@ -13,6 +13,11 @@ Core libraries and datatypes for the project
 #include "genlog/log.hpp"
 #include "math.h"
 
+#define WIDTH 640
+#define HEIGHT 480
+
+
+
 
 #ifndef NDEBUG
 //Things that happen with DEBUG mode on
