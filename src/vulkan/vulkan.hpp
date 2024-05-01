@@ -49,7 +49,8 @@ class Vulkan
     VkExtent2D m_SwapChainExtent;
     std::vector<VkImageView> m_SwapChainImageViews;
 
-    //
+    //Graphics
+    VkPipelineLayout m_PipelineLayout;
 
     GLFWwindow* m_Window;
     VkSurfaceKHR m_Surface;
