@@ -1,4 +1,5 @@
 #include "vulkan.hpp"
+#include "swapchain.hpp"
 #include "window.hpp"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -14,6 +15,9 @@ int Vulkan::initVulkan()
   pickPhysicalDevice(m_VkInstance, m_Device, m_Surface, m_PhysicalDevice, m_DeviceExtensions);
   createLogicalDevice(m_PhysicalDevice, m_Device, m_GraphicsQueue, m_ValidationLayers, m_DeviceExtensions, m_Surface, m_PresentQueue);
   createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
+  createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
+  createGraphicsPipelines(m_Device);
+
 
   return 1;
 }
@@ -25,6 +29,12 @@ int Vulkan::update()
 
 void Vulkan::cleanup()
 {
+  for (auto imageView : m_SwapChainImageViews)
+  {
+    vkDestroyImageView(m_Device, imageView, nullptr);
+  }
+
+
   vkDestroySwapchainKHR(m_Device, m_SwapChain, nullptr);
   vkDestroyDevice(m_Device, nullptr);
 

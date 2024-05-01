@@ -8,6 +8,7 @@
 #include "logicalDevice.hpp"
 #include "window.hpp"
 #include "swapchain.hpp"
+#include "graphicsPipeline.hpp"
 
 
 
@@ -46,6 +47,7 @@ class Vulkan
     std::vector<VkImage> m_SwapChainImages;
     VkFormat m_SwapChainImageFormat;
     VkExtent2D m_SwapChainExtent;
+    std::vector<VkImageView> m_SwapChainImageViews;
 
     //
 

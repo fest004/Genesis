@@ -1,4 +1,5 @@
 #include "swapchain.hpp"
+#include <vulkan/vulkan_core.h>
 
 
 struct SwapChainSupportDetails;
@@ -153,3 +154,43 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
 
   return actualExtent;
 }
+
+//Image view is... A view into an image! Like if they should be 2D with no depth or whatever
+void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std::vector<VkImageView> swapChainImageViews, const VkFormat& swapChainImageFormat)
+{
+  swapChainImageViews.resize(swapChainImages.size());
+
+  for (int i = 0; i < swapChainImages.size(); i++)
+  {
+    VkImageViewCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    createInfo.pNext = swapChainImages[i];
+
+    //2D at the moment
+    createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    createInfo.format = swapChainImageFormat;
+
+    //Identity colors
+    createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+    //Which part of the image should be accessed: Color targets with no mipmapping or multiple layers
+    //Mipmapping are precaulculated optimized images of lower resolution, to lower render times and create higher LOD
+    createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    createInfo.subresourceRange.baseMipLevel = 0; //TODO experiment with this
+    createInfo.subresourceRange.layerCount = 1;
+    createInfo.subresourceRange.baseArrayLayer = 0;
+    createInfo.subresourceRange.layerCount = 1;
+
+    //Lastly create image view
+    if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+      GenLogCritical("Failed to create image view! File is: swapchain.cpp");
+  }
+
+
+}
+
+
+
