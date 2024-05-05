@@ -8,7 +8,7 @@ struct SwapChainSupportDetails;
 
 void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice, 
     VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
-    std::vector<VkImage> swapChainImages, VkFormat swapChainImageFormat, VkExtent2D swapChainExtent)
+    std::vector<VkImage> swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent)
 {
   SwapChainSupportDetails swapChainSupport = querySwapchainSupport(physicalDevice, surface);
 
@@ -93,7 +93,7 @@ SwapChainSupportDetails querySwapchainSupport(VkPhysicalDevice& device, VkSurfac
 
 //Surface Format
 //Appriopiate Color format (SRBG is more accurate to percieved colors :D)
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats)
+VkSurfaceFormatKHR chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> availableFormats)
 {
   for (const auto& availableFormat : availableFormats)
   {
@@ -112,7 +112,7 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 //VK_PRESENT_MODE_FIFO_KHR - Swap chain is queue(hence FIFO) of images. Displayed First and insert last again
 //VK_PRESENT_MODE_FIFO_RELAXED_KHR Only differs from previous where in the queue is empty
 //MAILBOX - Images queued are replaced by newer ones
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes)
+VkPresentModeKHR chooseSwapPresentMode(std::vector<VkPresentModeKHR> availablePresentModes)
 {
   for (const auto& availablePresentMode : availablePresentModes)
   {
@@ -128,7 +128,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 
 //Swap Extent
 //Resolution of swap chain images. Often same as resolution of window
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
+VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
 {
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
   {
@@ -156,7 +156,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
 }
 
 //Image view is... A view into an image! Like if they should be 2D with no depth or whatever
-void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std::vector<VkImageView> swapChainImageViews, const VkFormat& swapChainImageFormat)
+void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std::vector<VkImageView> swapChainImageViews, VkFormat& swapChainImageFormat)
 {
   swapChainImageViews.resize(swapChainImages.size());
 

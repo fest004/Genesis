@@ -3,27 +3,46 @@
 
 
 
-void createGraphicsPipelines(VkDevice& device, VkPipelineLayout& pipelineLayout, const VkExtent2D& extent)
+
+VkShaderModule createShaderModule(VkDevice device, std::string filepath)
 {
-  auto vertexShader = readFile("../src/shaders/vert.spv");
-  auto fragShader =   readFile("../src/shaders/frag.spv");
+  auto shader = readFile(filepath);
+  VkShaderModule shaderModule = createShaderModule(device, shader);
+  return shaderModule;
+}
 
-  VkShaderModule vertexModule = createShaderModule(device, vertexShader);
-  VkShaderModule fragModule = createShaderModule(device, fragShader);
-
-  //Vertex createInfo
-  VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-  vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-  vertShaderStageInfo.module = vertexModule;
-  vertShaderStageInfo.pName = "main";
-
+VkPipelineShaderStageCreateInfo createFragmentShaderInfo(VkShaderModule fragmModule)
+{
   //Fragment createInfo
   VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
   fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragShaderStageInfo.module = fragModule;
+  fragShaderStageInfo.module = fragmModule;
   fragShaderStageInfo.pName = "main";
+
+  return fragShaderStageInfo;
+}
+
+VkPipelineShaderStageCreateInfo createVertexShaderInfo(VkShaderModule vertModule)
+{
+  //Vertex createInfo
+  VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+  fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  fragShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  fragShaderStageInfo.module = vertModule;
+  fragShaderStageInfo.pName = "main";
+
+  return fragShaderStageInfo;
+}
+
+void createGraphicsPipelines(VkDevice& device, VkPipeline& graphicsPipeline, VkPipelineLayout& pipelineLayout, const VkExtent2D& extent, VkRenderPass& renderpass)
+{
+  auto fragModule   = createShaderModule(device, "../src/shaders/frag.spv");
+  auto vertexModule = createShaderModule(device, "../src/shaders/vert.spv");
+  auto vertexInfo   = createVertexShaderInfo(vertexModule);
+  auto fragInfo     = createFragmentShaderInfo(fragModule);
+
+  VkPipelineShaderStageCreateInfo shaderStages[] = { vertexInfo, fragInfo };
 
   //Dynamic states can be changed without recreating the whole pipeline 
   //Viewport,
@@ -139,6 +158,30 @@ void createGraphicsPipelines(VkDevice& device, VkPipelineLayout& pipelineLayout,
 
   if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
     GenLogCritical("Failed to create Graphics Pipeline Layout! In graphicsPipeline.cpp");
+
+
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  pipelineInfo.stageCount = 2;
+  pipelineInfo.pStages = shaderStages;
+  pipelineInfo.pVertexInputState = &vertexInputInfo;
+  pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+  pipelineInfo.pViewportState = &viewportStateInfo;
+  pipelineInfo.pRasterizationState = &rasterizer;
+  pipelineInfo.pMultisampleState = &multisampling;
+  pipelineInfo.pDepthStencilState = nullptr;
+  pipelineInfo.pColorBlendState = &colorBlending;
+  pipelineInfo.pDynamicState = &dynamicState;
+
+  pipelineInfo.layout = pipelineLayout;
+  pipelineInfo.renderPass = renderpass;
+  pipelineInfo.subpass = 0;
+
+  pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+  pipelineInfo.basePipelineIndex = -1;
+
+  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+    GenLogCritical("Failed to create graphics pipeline! In file graphicsPipeline.cpp")
 
   //CLEANUP
   vkDestroyShaderModule(device, vertexModule, nullptr);

@@ -9,6 +9,7 @@
 #include "window.hpp"
 #include "swapchain.hpp"
 #include "graphicsPipeline.hpp"
+#include "renderpass.hpp"
 
 
 
@@ -50,7 +51,9 @@ class Vulkan
     std::vector<VkImageView> m_SwapChainImageViews;
 
     //Graphics
+    VkPipeline m_GraphicsPipeline;
     VkPipelineLayout m_PipelineLayout;
+    VkRenderPass m_RenderPass;
 
     GLFWwindow* m_Window;
     VkSurfaceKHR m_Surface;
