@@ -10,6 +10,9 @@
 #include "swapchain.hpp"
 #include "graphicsPipeline.hpp"
 #include "renderpass.hpp"
+#include "frameBuffers.hpp"
+#include "commandpool.hpp"
+#include "sync.hpp"
 
 
 
@@ -49,6 +52,7 @@ class Vulkan
     VkFormat m_SwapChainImageFormat;
     VkExtent2D m_SwapChainExtent;
     std::vector<VkImageView> m_SwapChainImageViews;
+    std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 
     //Graphics
     VkPipeline m_GraphicsPipeline;
@@ -59,7 +63,13 @@ class Vulkan
     VkSurfaceKHR m_Surface;
 
 
+    VkCommandPool m_CommandPool;
+    VkCommandBuffer m_CommandBuffer;
 
+    //Sync control
+    VkSemaphore m_ImageAvailableSemaphore; //Ready for render signal
+    VkSemaphore m_RenderFinishedSemaphore; //Rendering has finished signal
+    VkFence m_InFlightFence; //Only one frame rendering at a time
 
 
     const std::vector<const char*> m_DeviceExtensions = 
