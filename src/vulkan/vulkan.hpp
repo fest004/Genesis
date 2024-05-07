@@ -22,6 +22,7 @@ class Vulkan
     int initVulkan(); //Initializes all relevant Vulkan modules
     void cleanup();
     int update();
+    void drawFrame();
 
 
     //Getters and setters

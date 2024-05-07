@@ -19,8 +19,6 @@ void recordCommandBuffer(VkPipeline& pipeline, VkExtent2D& extent, std::vector<V
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
   renderPassInfo.renderPass = renderpass;
 
-  std::cout <<  &swapChainFrameBuffers[index] << "\n";
-
   renderPassInfo.framebuffer = swapChainFrameBuffers[index];
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = extent;
