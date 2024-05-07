@@ -8,7 +8,7 @@ struct SwapChainSupportDetails;
 
 void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice, 
     VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
-    std::vector<VkImage> swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent)
+    std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent)
 {
   SwapChainSupportDetails swapChainSupport = querySwapchainSupport(physicalDevice, surface);
 
@@ -156,15 +156,17 @@ VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* 
 }
 
 //Image view is... A view into an image! Like if they should be 2D with no depth or whatever
-void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std::vector<VkImageView> swapChainImageViews, VkFormat& swapChainImageFormat)
+void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, std::vector<VkImageView>& swapChainImageViews, VkFormat& swapChainImageFormat)
 {
   swapChainImageViews.resize(swapChainImages.size());
 
-  for (int i = 0; i < swapChainImages.size(); i++)
+  GenLogTrace("swapChainImages size: {}", swapChainImages.size());
+
+  for (size_t i = 0; i < swapChainImages.size(); i++)
   {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    createInfo.pNext = swapChainImages[i];
+    createInfo.image = swapChainImages[i];
 
     //2D at the moment
     createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -180,7 +182,7 @@ void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std
     //Mipmapping are precaulculated optimized images of lower resolution, to lower render times and create higher LOD
     createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     createInfo.subresourceRange.baseMipLevel = 0; //TODO experiment with this
-    createInfo.subresourceRange.layerCount = 1;
+    createInfo.subresourceRange.levelCount = 1;
     createInfo.subresourceRange.baseArrayLayer = 0;
     createInfo.subresourceRange.layerCount = 1;
 

@@ -14,11 +14,11 @@ struct SwapChainSupportDetails {
 
 void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice, 
     VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
-    std::vector<VkImage> swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent);
+    std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent);
 
 SwapChainSupportDetails querySwapchainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> availableFormats);
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
-void createImageViews(VkDevice& device,std::vector<VkImage> swapChainImages, std::vector<VkImageView> swapChainImageViews, VkFormat& swapChainImageFormat);
+void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, std::vector<VkImageView>& swapChainImageViews, VkFormat& swapChainImageFormat);
 

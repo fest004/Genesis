@@ -17,7 +17,7 @@ int Vulkan::initVulkan()
   createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
   createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
   createRenderpass(m_Device, m_RenderPass, m_SwapChainImageFormat);
-  createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass);
+  createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass);  
   createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
   createCommandBuffer(m_Device, m_CommandPool,m_CommandBuffer);
