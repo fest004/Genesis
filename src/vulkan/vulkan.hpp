@@ -65,12 +65,13 @@ class Vulkan
 
 
     VkCommandPool m_CommandPool;
-    VkCommandBuffer m_CommandBuffer;
+    std::vector<VkCommandBuffer> m_CommandBuffers;
 
     //Sync control
-    VkSemaphore m_ImageAvailableSemaphore; //Ready for render signal
-    VkSemaphore m_RenderFinishedSemaphore; //Rendering has finished signal
-    VkFence m_InFlightFence; //Only one frame rendering at a time
+    std::vector<VkSemaphore> m_ImageAvailableSemaphores; //Ready for render signal
+    std::vector<VkSemaphore> m_RenderFinishedSemaphores; //Rendering has finished signal
+    std::vector<VkFence> m_InFlightFences; //Only one frame rendering at a time
+    uint32_t m_CurrentFrame = 0;
 
 
     const std::vector<const char*> m_DeviceExtensions = 

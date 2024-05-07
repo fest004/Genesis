@@ -57,15 +57,19 @@ void recordCommandBuffer(VkPipeline& pipeline, VkExtent2D& extent, std::vector<V
 
 }
 
-void createCommandBuffer(VkDevice device, VkCommandPool& commandPool, VkCommandBuffer& commandBuffer)
+void createCommandBuffers(VkDevice& device, VkCommandPool& commandPool, std::vector<VkCommandBuffer>& commandBuffers)
 {
+  commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
   VkCommandBufferAllocateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   createInfo.commandPool = commandPool;
   createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   createInfo.commandBufferCount = 1;
+  createInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
-  vkAllocateCommandBuffers(device, &createInfo, &commandBuffer);
+  if (vkAllocateCommandBuffers(device, &createInfo, commandBuffers.data())!= VK_SUCCESS)
+    GenLogCritical("Failed to allocate command buffers! In commandpool.cpp")
 
 }
 

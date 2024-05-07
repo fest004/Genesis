@@ -13,6 +13,8 @@ Core libraries and datatypes for the project
 #include "genlog/log.hpp"
 #include "math.h"
 
+
+#define MAX_FRAMES_IN_FLIGHT 2 //Frames to be rendered at the same time
 #define WIDTH 640
 #define HEIGHT 480
 
