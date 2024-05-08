@@ -8,17 +8,17 @@
 
 int Vulkan::initVulkan()
 {
-  m_Window = createWindow();
+  m_Window = createWindow(&m_FrameBufferResized);
   createInstance(m_VkInstance, m_ValidationLayers); //Instance of vulkan, set up validation layers
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
   createSurface(m_VkInstance, m_Window, m_Surface);
   pickPhysicalDevice(m_VkInstance, m_Device, m_Surface, m_PhysicalDevice, m_DeviceExtensions);
   createLogicalDevice(m_PhysicalDevice, m_Device, m_GraphicsQueue, m_ValidationLayers, m_DeviceExtensions, m_Surface, m_PresentQueue);
-  createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
-  createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
+    createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
+    createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
   createRenderpass(m_Device, m_RenderPass, m_SwapChainImageFormat);
   createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass);  
-  createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
+    createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);
@@ -44,11 +44,29 @@ void Vulkan::drawFrame()
 {
   //Wait for previous frame to finish
   vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX); //Wait for fence  that tells us we are not rendering anything currently 
-  vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]); //Reset manually
   
   //Acquire new image from swapchain
   uint32_t imageIndex; 
-  vkAcquireNextImageKHR(m_Device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+  VkResult result = vkAcquireNextImageKHR(m_Device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+
+
+  //Check if we need to recreate swapchain and if we do we recreate it lol
+  if (result == VK_ERROR_OUT_OF_DATE_KHR)
+  {
+    recreateSwapchain(
+      m_Device, m_PhysicalDevice, m_Surface, 
+      m_SwapChain, m_Window, m_SwapChainImages, 
+      m_SwapChainImageFormat, m_SwapChainExtent, 
+      m_SwapChainImageViews, m_RenderPass, m_SwapChainFramebuffers
+    );
+  } 
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+  {
+    GenLogCritical("Failed to acquire swap chain image! In vulkan.cpp:drawFrame()");
+
+  }
+
+  vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]); //Reset manually
 
   //Record command buffer that draws scene to image
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
@@ -89,8 +107,23 @@ void Vulkan::drawFrame()
   presentInfo.pImageIndices = &imageIndex;
   presentInfo.pResults = nullptr;
 
-  vkQueuePresentKHR(m_PresentQueue, &presentInfo); //Oh my LOOORD
-  
+  result = vkQueuePresentKHR(m_PresentQueue, &presentInfo); //Oh my LOOORD
+
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FrameBufferResized)
+  {
+    m_FrameBufferResized = false; //Reset the flag of resetting
+    recreateSwapchain(
+      m_Device, m_PhysicalDevice, m_Surface, 
+      m_SwapChain, m_Window, m_SwapChainImages, 
+      m_SwapChainImageFormat, m_SwapChainExtent, 
+      m_SwapChainImageViews, m_RenderPass, m_SwapChainFramebuffers
+    );
+  } 
+  else if (result != VK_SUCCESS) 
+  {
+    GenLogCritical("Failed to present swap chain image! In vulkan.cpp:drawFrame()");
+  }
+ 
 
   m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
@@ -98,6 +131,9 @@ void Vulkan::drawFrame()
 
 void Vulkan::cleanup()
 {
+  cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
+
+
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     vkDestroySemaphore(m_Device, m_ImageAvailableSemaphores[i], nullptr);
@@ -106,17 +142,8 @@ void Vulkan::cleanup()
   }
 
   vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
-  for (auto framebuffer : m_SwapChainFramebuffers)
-    vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
-
   vkDestroyPipelineLayout(m_Device, m_PipelineLayout, nullptr);
   vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
-
-  for (auto imageView : m_SwapChainImageViews)
-    vkDestroyImageView(m_Device, imageView, nullptr);
-
-
-  vkDestroySwapchainKHR(m_Device, m_SwapChain, nullptr);
   vkDestroyDevice(m_Device, nullptr);
 
   if (DEBUG)

@@ -1,4 +1,5 @@
 #include "swapchain.hpp"
+#include <GLFW/glfw3.h>
 #include <vulkan/vulkan_core.h>
 
 
@@ -54,7 +55,7 @@ void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice,
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
   if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-      throw std::runtime_error("failed to create swap chain!");
+    GenLogCritical("Failed to create swapchain! In swapchain.cpp:vkCreateSwapChain()");
   }
   vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 
@@ -160,7 +161,8 @@ void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, st
 {
   swapChainImageViews.resize(swapChainImages.size());
 
-  GenLogTrace("swapChainImages size: {}", swapChainImages.size());
+  if (DEBUG)
+    GenLogTrace("swapChainImages size: {}", swapChainImages.size());
 
   for (size_t i = 0; i < swapChainImages.size(); i++)
   {
@@ -194,5 +196,49 @@ void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, st
 
 }
 
+void recreateSwapchain(
+  VkDevice& device, VkPhysicalDevice& physicalDevice, 
+    VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
+    std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent,
+    std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderPass, 
+    std::vector<VkFramebuffer>& swapChainFramebuffers 
+                       )
+{
+  if (DEBUG)
+    GenLogTrace("Recreate swapchain! In swapchain.cpp:recreateSwapchain()");
+
+  int width, height = 0;
+  glfwGetFramebufferSize(window, &width, &height);
+
+  while (width == 0 || height == 0)
+  {
+    glfwGetFramebufferSize(window, &width, &width);
+    glfwWaitEvents();
+  }
+
+  vkDeviceWaitIdle(device);
+
+  createSwapChain(device, physicalDevice, surface, swapChain, window, swapChainImages, swapChainImageFormat, swapChainExtent);
+
+  createImageViews(device, swapChainImages, swapChainImageViews, swapChainImageFormat);
+
+  createFrameBuffers(device, swapChainExtent, swapChainFramebuffers, swapChainImageViews, renderPass);
+
+}
+
+void cleanupSwapChain(VkDevice& device, VkSwapchainKHR& swapchain, std::vector<VkFramebuffer>& framebuffers, std::vector<VkImageView>& imageViews)
+{
+  for (auto framebuffer : framebuffers)
+  {
+    vkDestroyFramebuffer(device, framebuffer,nullptr); 
+  }
+
+  for (auto imageView : imageViews)
+  {
+    vkDestroyImageView(device, imageView, nullptr);
+  }
+
+  vkDestroySwapchainKHR(device, swapchain, nullptr);
+}
 
 

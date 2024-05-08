@@ -6,6 +6,6 @@
 
 
 
-GLFWwindow* createWindow();
+GLFWwindow* createWindow(bool* windowResized);
 void createSurface(VkInstance& instance, GLFWwindow* window, VkSurfaceKHR& surface);
 

@@ -60,8 +60,10 @@ class Vulkan
     VkPipelineLayout m_PipelineLayout;
     VkRenderPass m_RenderPass;
 
+    //Window
     GLFWwindow* m_Window;
     VkSurfaceKHR m_Surface;
+    bool m_FrameBufferResized = false;
 
 
     VkCommandPool m_CommandPool;

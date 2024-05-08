@@ -7,14 +7,28 @@
 #include "commandpool.hpp"
 
 
-GLFWwindow* createWindow()
+
+static void frameBufferResizedCallback(GLFWwindow* window, int width, int height);
+
+GLFWwindow* createWindow(bool* windowResized)
 {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   GLFWwindow* window;
+
   window = glfwCreateWindow(WIDTH, HEIGHT, "Genesis", nullptr, nullptr);
+  glfwSetWindowUserPointer(window, windowResized);
+  glfwSetFramebufferSizeCallback(window, frameBufferResizedCallback);
   return window;
+}
+
+static void frameBufferResizedCallback(GLFWwindow* window, int width, int height)
+{
+  auto flag = reinterpret_cast<bool*>(glfwGetWindowUserPointer(window));
+  *flag = true;
+  if (DEBUG)
+    GenLogTrace("Window resized!");
 }
 
 
