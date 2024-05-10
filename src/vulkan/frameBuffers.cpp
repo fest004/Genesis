@@ -1,5 +1,6 @@
 #include "frameBuffers.hpp"
 #include <vulkan/vulkan_core.h>
+#include "../shaders/vertices.hpp"
 
 
 void createFrameBuffers(const VkDevice& device, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderpass)
@@ -28,14 +29,20 @@ swapChainFramebuffers.resize(swapChainImageViews.size());
 
    if (vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
       GenLogCritical("Failed to create framebuffer! In framebuffer.cpp");
-
-
-   
  }
   GenLogTrace("Size of swapchainimageviews: {}", swapChainImageViews.size());
-
-
-
 }
 
 
+void createVertexBuffer(VkDevice& device, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices)
+{
+  VkBufferCreateInfo vertexInfo{};
+  vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  vertexInfo.size = sizeof(vertices[0]) * vertices.size();
+  vertexInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  vertexInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+  if (vkCreateBuffer(device, &vertexInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
+    GenLogCritical(("Failed to create Vertex Buffer! in frameBuffers.cpp:createVertexBuffer"));
+
+}

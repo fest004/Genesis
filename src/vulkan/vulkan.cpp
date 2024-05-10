@@ -12,15 +12,21 @@ int Vulkan::initVulkan()
   createInstance(m_VkInstance, m_ValidationLayers); //Instance of vulkan, set up validation layers
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
   createSurface(m_VkInstance, m_Window, m_Surface);
+
   pickPhysicalDevice(m_VkInstance, m_Device, m_Surface, m_PhysicalDevice, m_DeviceExtensions);
   createLogicalDevice(m_PhysicalDevice, m_Device, m_GraphicsQueue, m_ValidationLayers, m_DeviceExtensions, m_Surface, m_PresentQueue);
-    createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
-    createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
+
+  createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
+  createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
   createRenderpass(m_Device, m_RenderPass, m_SwapChainImageFormat);
   createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass);  
-    createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
+
+  createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
+
+  createVertexBuffer(m_Device, m_VertexBuffer, m_Vertices); 
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
+
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);
 
  
@@ -132,6 +138,7 @@ void Vulkan::drawFrame()
 void Vulkan::cleanup()
 {
   cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
+  vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
 
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -147,9 +154,7 @@ void Vulkan::cleanup()
   vkDestroyDevice(m_Device, nullptr);
 
   if (DEBUG)
-  {
     DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
-  }
 
   vkDestroySurfaceKHR(m_VkInstance, m_Surface, nullptr);
   vkDestroyInstance(m_VkInstance, nullptr);

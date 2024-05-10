@@ -13,6 +13,7 @@
 #include "frameBuffers.hpp"
 #include "commandpool.hpp"
 #include "sync.hpp"
+#include "../shaders/vertices.hpp"
 
 
 
@@ -46,7 +47,7 @@ class Vulkan
     VkQueue m_PresentQueue;
 
 
-        //Swapchain 
+    //Swapchain 
     SwapChainSupportDetails m_SwapChainSupportDetails;
     VkSwapchainKHR m_SwapChain;
     std::vector<VkImage> m_SwapChainImages;
@@ -66,14 +67,25 @@ class Vulkan
     bool m_FrameBufferResized = false;
 
 
+    //Commands
     VkCommandPool m_CommandPool;
     std::vector<VkCommandBuffer> m_CommandBuffers;
+
+  VkBuffer m_VertexBuffer;
 
     //Sync control
     std::vector<VkSemaphore> m_ImageAvailableSemaphores; //Ready for render signal
     std::vector<VkSemaphore> m_RenderFinishedSemaphores; //Rendering has finished signal
     std::vector<VkFence> m_InFlightFences; //Only one frame rendering at a time
     uint32_t m_CurrentFrame = 0;
+
+
+    const std::vector<Vertex> m_Vertices =
+    {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
 
 
     const std::vector<const char*> m_DeviceExtensions = 
