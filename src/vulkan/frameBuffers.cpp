@@ -1,7 +1,11 @@
 #include "frameBuffers.hpp"
+#include <algorithm>
+#include <cstring>
 #include <vulkan/vulkan_core.h>
 #include "../shaders/vertices.hpp"
 
+
+uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 void createFrameBuffers(const VkDevice& device, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderpass)
 {
@@ -34,7 +38,7 @@ swapChainFramebuffers.resize(swapChainImageViews.size());
 }
 
 
-void createVertexBuffer(VkDevice& device, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices)
+void createVertexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory& vertexBufferMemory, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices)
 {
   VkBufferCreateInfo vertexInfo{};
   vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -45,4 +49,42 @@ void createVertexBuffer(VkDevice& device, VkBuffer& vertexBuffer, const std::vec
   if (vkCreateBuffer(device, &vertexInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
     GenLogCritical(("Failed to create Vertex Buffer! in frameBuffers.cpp:createVertexBuffer"));
 
+  VkMemoryRequirements memRequireMents;
+  vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequireMents);
+
+  VkMemoryAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequireMents.size;
+  allocInfo.memoryTypeIndex = findMemoryType(physDevice, memRequireMents.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                                                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  if (vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) 
+    GenLogCritical("Failed to allocate memory!");
+
+  vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+
+  void* data;
+  vkMapMemory(device, vertexBufferMemory, 0, vertexInfo.size, 0, &data);
+  memcpy(data, vertices.data(), (size_t)vertexInfo.size);
+
 }
+
+
+uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+  VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+  {
+    if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+    {
+      return i;
+    }
+  }
+
+  GenLogCritical("Failed to find memory type!");
+  return 69-420;
+
+}
+
+

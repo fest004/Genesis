@@ -2,10 +2,11 @@
 #include "queues.hpp"
 #include <iostream>
 #include <vulkan/vulkan_core.h>
+#include "../shaders/vertices.hpp"
 
 
 
-void recordCommandBuffer(VkPipeline& pipeline, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index)
+void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index)
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -47,8 +48,13 @@ void recordCommandBuffer(VkPipeline& pipeline, VkExtent2D& extent, std::vector<V
   scissor.extent = extent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+  VkBuffer vertexBuffers[] = { vertexBuffer };
+  VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+
   //1200 lines of code, this is the one that sends the draw command...
-  vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+  vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

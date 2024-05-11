@@ -24,6 +24,8 @@ class Vulkan
     void cleanup();
     int update();
     void drawFrame();
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
 
 
     //Getters and setters
@@ -71,7 +73,8 @@ class Vulkan
     VkCommandPool m_CommandPool;
     std::vector<VkCommandBuffer> m_CommandBuffers;
 
-  VkBuffer m_VertexBuffer;
+    VkBuffer m_VertexBuffer;
+    VkDeviceMemory m_VertexBufferMemory;
 
     //Sync control
     std::vector<VkSemaphore> m_ImageAvailableSemaphores; //Ready for render signal
@@ -82,7 +85,7 @@ class Vulkan
 
     const std::vector<Vertex> m_Vertices =
     {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
         {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
         {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };

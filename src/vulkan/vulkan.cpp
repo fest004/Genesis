@@ -2,6 +2,7 @@
 #include "swapchain.hpp"
 #include "window.hpp"
 #include <GLFW/glfw3.h>
+#include <cstdint>
 #include <iostream>
 #include <ostream>
 #include <vulkan/vulkan_core.h>
@@ -24,7 +25,7 @@ int Vulkan::initVulkan()
   createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
 
-  createVertexBuffer(m_Device, m_VertexBuffer, m_Vertices); 
+  createVertexBuffer(m_Device, m_PhysicalDevice, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
 
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);
@@ -77,7 +78,7 @@ void Vulkan::drawFrame()
   //Record command buffer that draws scene to image
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
   //recordCommandBuffer(pipeline, extent, swapChainFrameBuffers, renderpass, commandBuffer, imageIndex);
-  recordCommandBuffer(m_GraphicsPipeline, m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex);
+  recordCommandBuffer(m_GraphicsPipeline, m_VertexBuffer, m_Vertices, m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex);
 
   
   //Submit recorded command buffer
@@ -139,6 +140,7 @@ void Vulkan::cleanup()
 {
   cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
   vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
+  vkFreeMemory(m_Device, m_VertexBufferMemory, nullptr);
 
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)

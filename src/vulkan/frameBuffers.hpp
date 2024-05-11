@@ -8,5 +8,4 @@ void createFrameBuffers(const VkDevice& device, VkExtent2D& extent,
                         VkRenderPass& renderpass);
 
 
-
-void createVertexBuffer(VkDevice& device, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices);
+void createVertexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory& vertexBufferMemory, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices);
