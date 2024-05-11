@@ -25,7 +25,7 @@ int Vulkan::initVulkan()
   createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
 
-  createVertexBuffer(m_Device, m_PhysicalDevice, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
+  createVertexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
 
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);

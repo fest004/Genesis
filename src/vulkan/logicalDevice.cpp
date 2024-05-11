@@ -50,9 +50,6 @@ void createLogicalDevice(VkPhysicalDevice& physicalDevice, VkDevice& device,
       createInfo.enabledLayerCount = 0;
   }
 
-
-
-
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) 
   {
     GenLogCritical("Failed to create logical device!");
