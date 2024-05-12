@@ -6,7 +6,8 @@
 
 
 
-void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index)
+void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, VkBuffer& indexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index, const std::vector<uint16_t>& indices)
+
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -50,11 +51,11 @@ void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, const std
 
   VkBuffer vertexBuffers[] = { vertexBuffer };
   VkDeviceSize offsets[] = {0};
+
+
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-
-  //1200 lines of code, this is the one that sends the draw command...
-  vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

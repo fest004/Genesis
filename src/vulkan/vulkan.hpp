@@ -76,6 +76,9 @@ class Vulkan
     VkBuffer m_VertexBuffer;
     VkDeviceMemory m_VertexBufferMemory;
 
+    VkBuffer m_IndexBuffer;
+    VkDeviceMemory m_IndexBufferMemory;
+
     //Sync control
     std::vector<VkSemaphore> m_ImageAvailableSemaphores; //Ready for render signal
     std::vector<VkSemaphore> m_RenderFinishedSemaphores; //Rendering has finished signal
@@ -83,11 +86,16 @@ class Vulkan
     uint32_t m_CurrentFrame = 0;
 
 
-    const std::vector<Vertex> m_Vertices =
+    const std::vector<Vertex> m_Vertices = {
+      {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+      {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
+
+    const std::vector<uint16_t> m_Indices
     {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 1.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}}
+      {0, 1, 2, 2, 3, 0}
     };
 
 
