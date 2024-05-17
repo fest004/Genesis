@@ -1,12 +1,13 @@
 #include "commandpool.hpp"
 #include "queues.hpp"
+#include <array>
 #include <iostream>
 #include <vulkan/vulkan_core.h>
 #include "../shaders/vertices.hpp"
 
 
 
-void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, VkBuffer& indexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index, const std::vector<uint16_t>& indices)
+void recordCommandBuffer(VkPipeline& pipeline, VkPipelineLayout& layout, VkBuffer& vertexBuffer, VkBuffer& indexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index, const std::vector<uint16_t>& indices, uint32_t currentFrame, std::vector<VkDescriptorSet>& descriptorSets)
 
 {
   VkCommandBufferBeginInfo beginInfo{};
@@ -38,8 +39,8 @@ void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, VkBuffer&
   VkViewport viewport{};
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = static_cast<uint32_t>(extent.width);
-  viewport.height= static_cast<uint32_t>(extent.height);
+  viewport.width = static_cast<float>(extent.width);
+  viewport.height= static_cast<float>(extent.height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -55,6 +56,12 @@ void recordCommandBuffer(VkPipeline& pipeline, VkBuffer& vertexBuffer, VkBuffer&
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  GenLogTrace("Current Frame: {}", currentFrame);
+  std::cout << descriptorSets.size() << std::endl;
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+
+
   vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);

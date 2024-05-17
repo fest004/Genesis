@@ -12,11 +12,20 @@ Core libraries and datatypes for the project
 #include "genlog/logger.hpp"
 #include "genlog/log.hpp"
 #include "math.h"
+#include <glm/glm.hpp>
 
 
 #define MAX_FRAMES_IN_FLIGHT 2 //Frames to be rendered at the same time
 #define WIDTH 640
 #define HEIGHT 480
+
+
+struct UniformBufferObject 
+{
+  glm::mat4 model;
+  glm::mat4 view;
+  glm::mat4 proj;
+};
 
 
 

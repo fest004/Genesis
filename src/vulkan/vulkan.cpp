@@ -1,4 +1,5 @@
 #include "vulkan.hpp"
+#include "commandpool.hpp"
 #include "swapchain.hpp"
 #include "window.hpp"
 #include <GLFW/glfw3.h>
@@ -6,6 +7,7 @@
 #include <iostream>
 #include <ostream>
 #include <vulkan/vulkan_core.h>
+#include "descriptorsetlayout.hpp"
 
 int Vulkan::initVulkan()
 {
@@ -20,19 +22,23 @@ int Vulkan::initVulkan()
   createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
   createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
   createRenderpass(m_Device, m_RenderPass, m_SwapChainImageFormat);
-  createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass);  
+
+  createDescriptorSetLayout(m_Device, m_DescriptorSetLayout, m_PipelineLayout);
+  createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass, m_DescriptorSetLayout);  
 
   createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
 
   createVertexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
   createIndexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_IndexBufferMemory, m_IndexBuffer, m_Indices);
+  createUniformBuffers(m_Device, m_PhysicalDevice, m_UniformBuffers, m_UniformBufferMemory, m_UniformBuffersMapped);
+
+  createDescriptorPool(m_Device, m_DescriptorPool);
+
+  createDescriptorSets(m_Device, m_UniformBuffers, m_DescriptorPool, m_DescriptorSetLayout, m_DescriptorSets);
+
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
-
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);
-
- 
-
   return 1;
 }
 
@@ -74,13 +80,17 @@ void Vulkan::drawFrame()
 
   }
 
+
+  updateUniformBuffer(m_UniformBuffersMapped, m_CurrentFrame, m_SwapChainExtent);
   vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]); //Reset manually
 
   //Record command buffer that draws scene to image
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-  //recordCommandBuffer(pipeline, extent, swapChainFrameBuffers, renderpass, commandBuffer, imageIndex);
-  recordCommandBuffer(m_GraphicsPipeline, m_VertexBuffer, m_IndexBuffer, m_Vertices, 
-                      m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex, m_Indices);
+
+
+  std::cout << &m_DescriptorSets << "\n";
+  recordCommandBuffer(m_GraphicsPipeline, m_PipelineLayout, m_VertexBuffer, m_IndexBuffer, m_Vertices, 
+                      m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex, m_Indices, m_CurrentFrame, m_DescriptorSets);
 
   
   //Submit recorded command buffer
@@ -141,6 +151,15 @@ void Vulkan::drawFrame()
 void Vulkan::cleanup()
 {
   cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroyBuffer(m_Device, m_UniformBuffers[i], nullptr);
+    vkFreeMemory(m_Device, m_UniformBufferMemory[i], nullptr);
+  }
+
+
+  vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
   vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
   vkDestroyBuffer(m_Device, m_IndexBuffer, nullptr);
   vkFreeMemory(m_Device, m_VertexBufferMemory, nullptr);
