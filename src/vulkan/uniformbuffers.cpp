@@ -1,9 +1,5 @@
 #include "uniformbuffers.hpp"
-
-#include <glm/glm.hpp>
-#include "../core.h"
 #include <chrono>
-#include <glm/gtc/matrix_transform.hpp>
 #include <vulkan/vulkan_core.h>
 #include "frameBuffers.hpp"
 

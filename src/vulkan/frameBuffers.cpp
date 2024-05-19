@@ -1,10 +1,8 @@
+#include "../core.h"
 #include "frameBuffers.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 #include "../shaders/vertices.hpp"
 

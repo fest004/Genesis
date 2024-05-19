@@ -95,7 +95,7 @@ class Vulkan
     std::vector<VkFence> m_InFlightFences; //Only one frame rendering at a time
     uint32_t m_CurrentFrame = 0;
 
-  UniformBufferObject m_UBO;
+    UniformBufferObject m_UBO;
 
 
 
