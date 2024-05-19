@@ -1,16 +1,20 @@
+#include "../core.h"
 #include "frameBuffers.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
 #include "../shaders/vertices.hpp"
 
-
 uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+
+
+
 
 void createFrameBuffers(const VkDevice& device, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderpass)
 {
   swapChainFramebuffers.resize(swapChainImageViews.size());
-
 
   for (size_t i = 0; i < swapChainImageViews.size(); i++)
   {

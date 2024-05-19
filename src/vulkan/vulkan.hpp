@@ -14,6 +14,8 @@
 #include "commandpool.hpp"
 #include "sync.hpp"
 #include "../shaders/vertices.hpp"
+#include "descriptorsetlayout.hpp"
+#include "uniformbuffers.hpp"
 
 
 
@@ -76,6 +78,14 @@ class Vulkan
     VkBuffer m_VertexBuffer;
     VkDeviceMemory m_VertexBufferMemory;
 
+    std::vector<VkBuffer> m_UniformBuffers;
+    std::vector<VkDeviceMemory> m_UniformBufferMemory;
+    std::vector<void*> m_UniformBuffersMapped;
+
+    VkDescriptorSetLayout m_DescriptorSetLayout;
+    VkDescriptorPool m_DescriptorPool;
+    std::vector<VkDescriptorSet> m_DescriptorSets;
+
     VkBuffer m_IndexBuffer;
     VkDeviceMemory m_IndexBufferMemory;
 
@@ -85,12 +95,15 @@ class Vulkan
     std::vector<VkFence> m_InFlightFences; //Only one frame rendering at a time
     uint32_t m_CurrentFrame = 0;
 
+    UniformBufferObject m_UBO;
 
-    const std::vector<Vertex> m_Vertices = {
-      {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-      {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+
+
+  const std::vector<Vertex> m_Vertices = {
+      {{-0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+      {{0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
+      {{0.5f, 0.5f}, {1.0f, 0.0f, 1.0f}},
+      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };
 
     const std::vector<uint16_t> m_Indices
