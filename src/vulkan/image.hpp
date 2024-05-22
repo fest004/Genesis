@@ -22,3 +22,8 @@ void createImage(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory&
 
 void copyBufferToImage(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
 
+
+void createTextureImageView(VkDevice& device, VkImage& image, VkImageView& textureImageView);
+
+
+void createTextureSampler(VkDevice& device, VkPhysicalDevice& physDevice, VkSampler& sampler);

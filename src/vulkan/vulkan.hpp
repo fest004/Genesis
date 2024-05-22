@@ -102,6 +102,8 @@ class Vulkan
     //Image Texture
     VkImage m_Image;
     VkDeviceMemory m_textureImageMemory;
+    VkImageView m_TextureImageView;
+    VkSampler m_TextureSampler;
 
 
   const std::vector<Vertex> m_Vertices = {
