@@ -31,3 +31,4 @@ void createIndexBuffer(VkDevice &device, VkPhysicalDevice &physDevice,
                        VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer,
                        const std::vector<uint16_t> &indices);
 
+uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);

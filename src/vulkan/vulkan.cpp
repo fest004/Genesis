@@ -28,6 +28,7 @@ int Vulkan::initVulkan()
 
   createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
+  createImageTexture(m_Device, m_CommandPool, m_PhysicalDevice, m_Image, m_textureImageMemory, m_GraphicsQueue, "../images/sanic.png");
 
   createVertexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
   createIndexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_IndexBufferMemory, m_IndexBuffer, m_Indices);
@@ -88,7 +89,6 @@ void Vulkan::drawFrame()
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
 
 
-  std::cout << &m_DescriptorSets << "\n";
   recordCommandBuffer(m_GraphicsPipeline, m_PipelineLayout, m_VertexBuffer, m_IndexBuffer, m_Vertices, 
                       m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex, m_Indices, m_CurrentFrame, m_DescriptorSets);
 
@@ -151,6 +151,9 @@ void Vulkan::drawFrame()
 void Vulkan::cleanup()
 {
   cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
+
+  vkDestroyImage(m_Device, m_Image, nullptr);
+  vkFreeMemory(m_Device, m_textureImageMemory, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
