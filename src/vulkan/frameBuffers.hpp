@@ -1,5 +1,4 @@
 #include "../core.h"
-#include "../shaders/vertices.hpp"
 
 // TODO find general way of reducing the amounts of paramaters without making it
 // overly object oriented
@@ -26,9 +25,10 @@ void copyBuffer(VkDevice &device, VkPhysicalDevice &physDevice,
                 VkBuffer &dstBuffer, const VkDeviceSize &size,
                 VkCommandPool &commandPool);
 
-void createIndexBuffer(VkDevice &device, VkPhysicalDevice &physDevice,
-                       VkQueue &graphicsQueue, VkCommandPool &commandPool,
-                       VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer,
-                       const std::vector<uint16_t> &indices);
+
+void createIndexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, 
+                       VkQueue& graphicsQueue, VkCommandPool& commandPool, 
+                       VkDeviceMemory& indexBufferMemory, VkBuffer& indexBuffer, 
+                       const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
 uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);

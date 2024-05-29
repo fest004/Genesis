@@ -145,11 +145,11 @@ VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* 
     static_cast<uint32_t>(height)
   };
 
-  actualExtent.width = std::clamp(actualExtent.width, 
+  actualExtent.width = glm::clamp(actualExtent.width, 
                                   capabilities.minImageExtent.width, 
                                   capabilities.maxImageExtent.width);
 
-  actualExtent.height= std::clamp(actualExtent.height, 
+  actualExtent.height= glm::clamp(actualExtent.height, 
                                   capabilities.minImageExtent.height, 
                                   capabilities.maxImageExtent.height);
 

@@ -30,14 +30,15 @@ int Vulkan::initVulkan()
   createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
   createImageTexture(m_Device, m_CommandPool, m_PhysicalDevice, m_Image, m_textureImageMemory, m_GraphicsQueue, "../images/sanic.png");
   createTextureImageView(m_Device, m_Image, m_TextureImageView);
+  createTextureSampler(m_Device, m_PhysicalDevice, m_TextureSampler);
 
   createVertexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
-  createIndexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_IndexBufferMemory, m_IndexBuffer, m_Indices);
+  createIndexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_IndexBufferMemory, m_IndexBuffer, m_Indices, m_Vertices);
   createUniformBuffers(m_Device, m_PhysicalDevice, m_UniformBuffers, m_UniformBufferMemory, m_UniformBuffersMapped);
 
   createDescriptorPool(m_Device, m_DescriptorPool);
 
-  createDescriptorSets(m_Device, m_UniformBuffers, m_DescriptorPool, m_DescriptorSetLayout, m_DescriptorSets);
+  createDescriptorSets(m_Device, m_UniformBuffers, m_TextureSampler, m_TextureImageView, m_DescriptorPool, m_DescriptorSetLayout, m_DescriptorSets);
 
   createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
   createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);

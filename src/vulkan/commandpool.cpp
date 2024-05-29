@@ -3,7 +3,6 @@
 #include <array>
 #include <iostream>
 #include <vulkan/vulkan_core.h>
-#include "../shaders/vertices.hpp"
 
 
 
