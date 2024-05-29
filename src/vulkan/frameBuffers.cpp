@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
-#include "../shaders/vertices.hpp"
 
 uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
@@ -70,7 +69,7 @@ void createBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceSize s
 }
 
 
-void createIndexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkDeviceMemory& indexBufferMemory, VkBuffer& indexBuffer, const std::vector<uint16_t>& indices)
+void createIndexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkDeviceMemory& indexBufferMemory, VkBuffer& indexBuffer, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
 {
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 

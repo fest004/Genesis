@@ -13,9 +13,9 @@
 #include "frameBuffers.hpp"
 #include "commandpool.hpp"
 #include "sync.hpp"
-#include "../shaders/vertices.hpp"
 #include "descriptorsetlayout.hpp"
 #include "uniformbuffers.hpp"
+#include "image.hpp"
 
 
 
@@ -98,13 +98,22 @@ class Vulkan
     UniformBufferObject m_UBO;
 
 
+    //Image Texture
+    VkImage m_Image;
+    VkDeviceMemory m_textureImageMemory;
+    VkImageView m_TextureImageView;
+    VkSampler m_TextureSampler;
 
-  const std::vector<Vertex> m_Vertices = {
-      {{-0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
-      {{0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
-      {{0.5f, 0.5f}, {1.0f, 0.0f, 1.0f}},
-      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-    };
+
+
+  const std::vector<Vertex> m_Vertices = 
+  {
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+  };
+
 
     const std::vector<uint16_t> m_Indices
     {

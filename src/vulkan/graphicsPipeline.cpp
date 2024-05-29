@@ -1,6 +1,5 @@
 #include "graphicsPipeline.hpp"
 #include <vulkan/vulkan_core.h>
-#include "../shaders/vertices.hpp"
 
 
 
