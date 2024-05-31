@@ -1,5 +1,5 @@
 #include "commandpool.hpp"
-#include "queues.hpp"
+#include "core/queues.hpp"
 #include <array>
 #include <iostream>
 #include <vulkan/vulkan_core.h>
@@ -84,16 +84,16 @@ void createCommandBuffers(VkDevice& device, VkCommandPool& commandPool, std::vec
 
 }
 
-void createCommandPool(VkDevice device, VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface, VkCommandPool& commandPool)
+void createCommandPool(Gen_Devices& devices, VkSurfaceKHR& surface, VkCommandPool& commandPool)
 {
-  QueueFamilyIndices familyIndeces = findQueueFamilies(physicalDevice, surface);
+  QueueFamilyIndices familyIndeces = findQueueFamilies(devices.physicalDevice, surface);
 
   VkCommandPoolCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; //Record command buffer every frame
   createInfo.queueFamilyIndex = familyIndeces.graphicsFamily.value();
 
-  if (vkCreateCommandPool(device, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
+  if (vkCreateCommandPool(devices.logicalDevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
     GenLogCritical("Failed to create Command Pool! In commandpool.cpp");
 }
 

@@ -6,6 +6,7 @@ Core libraries and datatypes for the project
 
  */
 
+#include <vulkan/vulkan_core.h>
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -28,12 +29,86 @@ Core libraries and datatypes for the project
 #define HEIGHT 480
 
 
+
+struct SwapChainSupportDetails 
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
+
 struct alignas(16) UniformBufferObject 
 {
   glm::mat4 model;
   glm::mat4 view;
   glm::mat4 proj;
 };
+
+struct Gen_Devices
+{
+  VkDevice logicalDevice;
+  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+};
+
+struct Gen_Graphics
+{
+  VkPipeline graphicsPipeline;
+  VkPipelineLayout pipelineLayout;
+  VkRenderPass renderPass;
+};
+
+struct Gen_Swapchain
+{
+  SwapChainSupportDetails swapChainSupportDetails;
+  VkSwapchainKHR swapChain;
+  std::vector<VkImage> swapChainImages;
+  VkFormat swapChainImageFormat;
+  VkExtent2D swapChainExtent;
+  std::vector<VkImageView> swapChainImageViews;
+  std::vector<VkFramebuffer> swapChainFramebuffers;
+};
+
+struct Gen_Buffers
+{
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+  std::vector<void*> m_UniformBuffersMapped;
+};
+
+struct Gen_SyncObjects
+{
+  std::vector<VkSemaphore> imageAvailableSemaphores; //Ready for render signal
+  std::vector<VkSemaphore> renderFinishedSemaphores; //Rendering has finished signal
+  std::vector<VkFence> inFlightFences; //Only one frame rendering at a time
+};
+
+struct Gen_ImageTexture
+{
+  VkImage image;
+  VkDeviceMemory textureImageMemory;
+  VkImageView textureImageView;
+  VkSampler textureSampler;
+};
+
+struct Gen_DescriptorSet
+{
+  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorsSets;
+};
+
+struct Gen_Window 
+{
+  GLFWwindow* window;
+  VkSurfaceKHR surface;
+  bool frameBufferResized;
+};
+
 
 struct Vertex 
   {

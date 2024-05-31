@@ -6,16 +6,13 @@
 struct SwapChainSupportDetails;
 
 
-
-void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice, 
-    VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
-    std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent)
+void createSwapChain(Gen_Devices& devices, Gen_Swapchain& swapChainInfo, Gen_Window& windowInfo)
 {
-  SwapChainSupportDetails swapChainSupport = querySwapchainSupport(physicalDevice, surface);
+  SwapChainSupportDetails swapChainSupport = querySwapchainSupport(devices.physicalDevice, windowInfo.surface);
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-  VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window);
+  VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, windowInfo.window);
 
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -24,7 +21,7 @@ void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
   VkSwapchainCreateInfoKHR createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.surface = surface;
+  createInfo.surface = windowInfo.surface;
 
   createInfo.minImageCount = imageCount;
   createInfo.imageFormat = surfaceFormat.format;
@@ -33,7 +30,7 @@ void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice,
   createInfo.imageArrayLayers = 1;
   createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
+  QueueFamilyIndices indices = findQueueFamilies(devices.physicalDevice, windowInfo.surface);
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
   if (indices.graphicsFamily != indices.presentFamily) 
@@ -54,16 +51,16 @@ void createSwapChain(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+  if (vkCreateSwapchainKHR(devices.logicalDevice, &createInfo, nullptr, &swapChainInfo.swapChain) != VK_SUCCESS) {
     GenLogCritical("Failed to create swapchain! In swapchain.cpp:vkCreateSwapChain()");
   }
-  vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+  vkGetSwapchainImagesKHR(devices.logicalDevice, swapChainInfo.swapChain, &imageCount, nullptr);
 
-  swapChainImages.resize(imageCount);
-  vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+  swapChainInfo.swapChainImages.resize(imageCount);
+  vkGetSwapchainImagesKHR(devices.logicalDevice, swapChainInfo.swapChain, &imageCount, swapChainInfo.swapChainImages.data());
 
-  swapChainImageFormat = surfaceFormat.format;
-  swapChainExtent = extent;
+  swapChainInfo.swapChainImageFormat = surfaceFormat.format;
+  swapChainInfo.swapChainExtent = extent;
 }
 
 SwapChainSupportDetails querySwapchainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface)
@@ -157,22 +154,22 @@ VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* 
 }
 
 //Image view is... A view into an image! Like if they should be 2D with no depth or whatever
-void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, std::vector<VkImageView>& swapChainImageViews, VkFormat& swapChainImageFormat)
+void createImageViews(VkDevice& device, Gen_Swapchain& swapChainInfo)
 {
-  swapChainImageViews.resize(swapChainImages.size());
+  swapChainInfo.swapChainImageViews.resize(swapChainInfo.swapChainImages.size());
 
   if (DEBUG)
-    GenLogTrace("swapChainImages size: {}", swapChainImages.size());
+    GenLogTrace("swapChainImages size: {}", swapChainInfo.swapChainImages.size());
 
-  for (size_t i = 0; i < swapChainImages.size(); i++)
+  for (size_t i = 0; i < swapChainInfo.swapChainImages.size(); i++)
   {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    createInfo.image = swapChainImages[i];
+    createInfo.image = swapChainInfo.swapChainImages[i];
 
     //2D at the moment
     createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    createInfo.format = swapChainImageFormat;
+    createInfo.format = swapChainInfo.swapChainImageFormat;
 
     //Identity colors
     createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -189,7 +186,7 @@ void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, st
     createInfo.subresourceRange.layerCount = 1;
 
     //Lastly create image view
-    if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+    if (vkCreateImageView(device, &createInfo, nullptr, &swapChainInfo.swapChainImageViews[i]) != VK_SUCCESS)
       GenLogCritical("Failed to create image view! File is: swapchain.cpp");
   }
 
@@ -197,32 +194,30 @@ void createImageViews(VkDevice& device,std::vector<VkImage>& swapChainImages, st
 }
 
 void recreateSwapchain(
-  VkDevice& device, VkPhysicalDevice& physicalDevice, 
-    VkSurfaceKHR& surface, VkSwapchainKHR& swapChain, GLFWwindow* window, 
-    std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent,
-    std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderPass, 
-    std::vector<VkFramebuffer>& swapChainFramebuffers 
-                       )
+Gen_Devices& devices, Gen_Swapchain& swapChainInfo, Gen_Window& windowInfo, VkRenderPass& renderPass
+)
 {
   if (DEBUG)
     GenLogTrace("Recreate swapchain! In swapchain.cpp:recreateSwapchain()");
 
   int width, height = 0;
-  glfwGetFramebufferSize(window, &width, &height);
+  glfwGetFramebufferSize(windowInfo.window, &width, &height);
 
   while (width == 0 || height == 0)
   {
-    glfwGetFramebufferSize(window, &width, &width);
+    glfwGetFramebufferSize(windowInfo.window, &width, &width);
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(device);
+  vkDeviceWaitIdle(devices.logicalDevice);
 
-  createSwapChain(device, physicalDevice, surface, swapChain, window, swapChainImages, swapChainImageFormat, swapChainExtent);
+  createSwapChain(devices, swapChainInfo, windowInfo);
 
-  createImageViews(device, swapChainImages, swapChainImageViews, swapChainImageFormat);
+  createImageViews(devices.logicalDevice, swapChainInfo);
 
-  createFrameBuffers(device, swapChainExtent, swapChainFramebuffers, swapChainImageViews, renderPass);
+
+
+  createFrameBuffers(devices.logicalDevice, swapChainInfo.swapChainExtent, swapChainInfo.swapChainFramebuffers, swapChainInfo.swapChainImageViews, renderPass);
 
 }
 

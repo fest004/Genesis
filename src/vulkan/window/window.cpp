@@ -4,7 +4,6 @@
 #include <ostream>
 #include <stdatomic.h>
 #include <vulkan/vulkan_core.h>
-#include "commandpool.hpp"
 
 
 
@@ -32,9 +31,9 @@ static void frameBufferResizedCallback(GLFWwindow* window, int width, int height
 }
 
 
-void createSurface(VkInstance& instance, GLFWwindow* window, VkSurfaceKHR& surface)
+void createSurface(VkInstance& instance, Gen_Window& windowInfo)
 {
-  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
+  if (glfwCreateWindowSurface(instance, windowInfo.window, nullptr, &windowInfo.surface) != VK_SUCCESS) 
   {
     GenLogCritical("Failed to create Window surface!");
   }

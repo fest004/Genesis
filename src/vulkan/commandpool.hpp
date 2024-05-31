@@ -5,5 +5,4 @@ void recordCommandBuffer(VkPipeline& pipeline, VkPipelineLayout& layout, VkBuffe
 
 void createCommandBuffers(VkDevice& device, VkCommandPool& commandPool, std::vector<VkCommandBuffer>& commandBuffers);
 
-void createCommandPool(VkDevice device, VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface, 
-VkCommandPool& commandPool);
+void createCommandPool(Gen_Devices& devices, VkSurfaceKHR& surface, VkCommandPool& commandPool);

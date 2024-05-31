@@ -1,66 +1,81 @@
+
 #include "vulkan.hpp"
 #include "commandpool.hpp"
+#include "core/physicalDevice.hpp"
 #include "swapchain.hpp"
-#include "window.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint>
 #include <iostream>
 #include <ostream>
 #include <vulkan/vulkan_core.h>
-#include "descriptorsetlayout.hpp"
 
 int Vulkan::initVulkan()
 {
-  m_Window = createWindow(&m_FrameBufferResized);
+  m_WindowInfo.window = createWindow(&m_WindowInfo.frameBufferResized);
+
   createInstance(m_VkInstance, m_ValidationLayers); //Instance of vulkan, set up validation layers
+
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
-  createSurface(m_VkInstance, m_Window, m_Surface);
 
-  pickPhysicalDevice(m_VkInstance, m_Device, m_Surface, m_PhysicalDevice, m_DeviceExtensions);
-  createLogicalDevice(m_PhysicalDevice, m_Device, m_GraphicsQueue, m_ValidationLayers, m_DeviceExtensions, m_Surface, m_PresentQueue);
+  createSurface(m_VkInstance, m_WindowInfo);
 
-  createSwapChain(m_Device, m_PhysicalDevice, m_Surface, m_SwapChain, m_Window, m_SwapChainImages, m_SwapChainImageFormat, m_SwapChainExtent);
-  createImageViews(m_Device, m_SwapChainImages, m_SwapChainImageViews, m_SwapChainImageFormat);
-  createRenderpass(m_Device, m_RenderPass, m_SwapChainImageFormat);
+  pickPhysicalDevice(m_VkInstance, m_Devices, m_WindowInfo.surface, m_DeviceExtensions);
 
-  createDescriptorSetLayout(m_Device, m_DescriptorSetLayout, m_PipelineLayout);
-  createGraphicsPipelines(m_Device, m_GraphicsPipeline, m_PipelineLayout, m_SwapChainExtent, m_RenderPass, m_DescriptorSetLayout);  
+  createLogicalDevice(m_Devices, m_GraphicsQueue, m_PresentQueue, m_ValidationLayers, m_DeviceExtensions, m_WindowInfo.surface);
 
-  createFrameBuffers(m_Device, m_SwapChainExtent, m_SwapChainFramebuffers, m_SwapChainImageViews, m_RenderPass);
-  createCommandPool(m_Device, m_PhysicalDevice, m_Surface, m_CommandPool);
-  createImageTexture(m_Device, m_CommandPool, m_PhysicalDevice, m_Image, m_textureImageMemory, m_GraphicsQueue, "../images/sanic.png");
-  createTextureImageView(m_Device, m_Image, m_TextureImageView);
-  createTextureSampler(m_Device, m_PhysicalDevice, m_TextureSampler);
+  createSwapChain(m_Devices, m_SwapchainInfo, m_WindowInfo);
 
-  createVertexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_VertexBufferMemory, m_VertexBuffer, m_Vertices);
-  createIndexBuffer(m_Device, m_PhysicalDevice, m_GraphicsQueue, m_CommandPool, m_IndexBufferMemory, m_IndexBuffer, m_Indices, m_Vertices);
-  createUniformBuffers(m_Device, m_PhysicalDevice, m_UniformBuffers, m_UniformBufferMemory, m_UniformBuffersMapped);
+  createImageViews(m_Devices.logicalDevice, m_SwapchainInfo);
 
-  createDescriptorPool(m_Device, m_DescriptorPool);
+  createRenderpass(m_Devices.logicalDevice, m_GraphicsInfo.renderPass, m_SwapchainInfo.swapChainImageFormat);
 
-  createDescriptorSets(m_Device, m_UniformBuffers, m_TextureSampler, m_TextureImageView, m_DescriptorPool, m_DescriptorSetLayout, m_DescriptorSets);
+  createDescriptorSetLayout(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorSetLayout, m_GraphicsInfo.pipelineLayout);
 
-  createCommandBuffers(m_Device, m_CommandPool,m_CommandBuffers);
-  createSyncObjects(m_Device, m_ImageAvailableSemaphores, m_RenderFinishedSemaphores, m_InFlightFences);
+  createGraphicsPipelines(m_Devices.logicalDevice, m_GraphicsInfo, m_SwapchainInfo.swapChainExtent, m_DescriptorSetInfo.descriptorSetLayout);
+
+
+  createFrameBuffers(m_Devices.logicalDevice, m_SwapchainInfo, m_GraphicsInfo.renderPass);
+
+  createCommandPool(m_Devices, m_WindowInfo.surface, m_CommandPool);
+
+  createImageTexture(m_Devices, m_ImageTextureInfo, m_GraphicsQueue, m_CommandPool, "../image/sanic.png");
+
+  createTextureImageView(m_Devices.logicalDevice, m_ImageTextureInfo);
+
+  createTextureSampler(m_Devices, m_ImageTextureInfo.textureSampler);
+
+  createVertexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Vertices);
+
+  createIndexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Indices, m_Vertices);
+
+  createUniformBuffers(m_Devices, m_BufferInfo);
+
+  createDescriptorPool(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorPool);
+
+  createDescriptorSets(m_Devices.logicalDevice, m_BufferInfo.uniformBuffers, m_ImageTextureInfo, m_DescriptorSetInfo);
+
+  createCommandBuffers(m_Devices.logicalDevice, m_CommandPool,m_CommandBuffers);
+
+  createSyncObjects(m_Devices.logicalDevice, m_SyncInfo);
   return 1;
 }
 
 int Vulkan::update()
 {
-  if (!glfwWindowShouldClose(m_Window))
+  if (!glfwWindowShouldClose(m_WindowInfo.window))
   {
     glfwPollEvents();
     drawFrame();
 
   }
-  vkDeviceWaitIdle(m_Device);
+  vkDeviceWaitIdle(m_Devices.logicalDevice);
   return 1;
 }
 
 void Vulkan::drawFrame()
 {
   //Wait for previous frame to finish
-  vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX); //Wait for fence  that tells us we are not rendering anything currently 
+  vkWaitForFences(m_Devices.logicalDevice, 1, &m_SyncInfo.inFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX); //Wait for fence  that tells us we are not rendering anything currently 
   
   //Acquire new image from swapchain
   uint32_t imageIndex; 

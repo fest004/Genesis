@@ -31,18 +31,18 @@ void updateUniformBuffer(std::vector<void*>& uniformBuffersMapped, const uint32_
 }
 
 
-void createUniformBuffers(VkDevice& device, VkPhysicalDevice& physDevice, std::vector<VkBuffer>& buffers, std::vector<VkDeviceMemory>& deviceMemories, std::vector<void*>& uniformBuffersMapped)
+void createUniformBuffers(Gen_Devices& devices, Gen_Buffers& bufferInfo)
 {
   VkDeviceSize size = sizeof(UniformBufferObject);
 
-  buffers.resize(MAX_FRAMES_IN_FLIGHT);
-  deviceMemories.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+  bufferInfo.uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  bufferInfo.uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  bufferInfo.m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    createBuffer(device, physDevice, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffers[i], deviceMemories[i]);
-    vkMapMemory(device, deviceMemories[i], 0, size, 0, &uniformBuffersMapped[i]);
+    createBuffer(devices, bufferInfo.uniformBuffers[i], bufferInfo.uniformBuffersMemory[i], size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vkMapMemory(devices.logicalDevice, bufferInfo.indexBufferMemory[i], 0, size, 0, &bufferInfo.m_UniformBuffersMapped[i]);
   }
 
 }

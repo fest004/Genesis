@@ -2,14 +2,13 @@
 #include <vulkan/vulkan_core.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../libs/stb_image.h"
+#include "../../../libs/stb_image.h"
 
 
 
 
 
-
-void createImageTexture(VkDevice& device, VkCommandPool& commandPool, VkPhysicalDevice& physDevice, VkImage& image, VkDeviceMemory& textureImageMem, VkQueue& graphicsQueue, const char* filepath)
+void createImageTexture(Gen_Devices& devices, Gen_ImageTexture imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath)
 {
   int texWidth, texHeight, texChannels;
 
@@ -22,29 +21,30 @@ void createImageTexture(VkDevice& device, VkCommandPool& commandPool, VkPhysical
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  createBuffer(device, physDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+  createBuffer(devices, stagingBuffer, stagingBufferMemory, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
 
   void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+  vkMapMemory(devices.logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
-  vkUnmapMemory(device, stagingBufferMemory);
+  vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
   stbi_image_free(pixels);
 
-  createImage(device, physDevice, textureImageMem, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, 
+  createImage(devices, imageInfo.textureImageMemory, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, 
               VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, stagingBufferMemory);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageInfo.image, stagingBufferMemory);
 
-  transitionImageLayout(device, graphicsQueue, commandPool, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  copyBufferToImage(device, graphicsQueue, commandPool, stagingBuffer, image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-  transitionImageLayout(device, graphicsQueue, commandPool, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  transitionImageLayout(devices.logicalDevice, graphicsQueue, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  copyBufferToImage(devices.logicalDevice, graphicsQueue, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+  transitionImageLayout(devices.logicalDevice, graphicsQueue, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
+  vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);
 
   }
 
 
-void createImage(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
+void createImage(Gen_Devices& devices, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
                  VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) 
 {
 VkImageCreateInfo imageInfo{};
@@ -63,22 +63,22 @@ VkImageCreateInfo imageInfo{};
   imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
   imageInfo.flags = 0;
 
-  if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+  if (vkCreateImage(devices.logicalDevice, &imageInfo, nullptr, &image) != VK_SUCCESS)
     GenLogCritical("Failed to create image! In image.cpp");
 
 
   VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(device, image, &memRequirements);
+  vkGetImageMemoryRequirements(devices.logicalDevice, image, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(physDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  allocInfo.memoryTypeIndex = findMemoryType(devices.physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMem) != VK_SUCCESS)
+  if (vkAllocateMemory(devices.logicalDevice, &allocInfo, nullptr, &textureImageMem) != VK_SUCCESS)
     GenLogCritical("Failed to allocate memory! In image.cpp");
 
-  vkBindImageMemory(device, image, textureImageMem, 0);
+  vkBindImageMemory(devices.logicalDevice, image, textureImageMem, 0);
 
 
 }
@@ -113,11 +113,11 @@ void copyBufferToImage(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& 
 }
 
 
-void createTextureImageView(VkDevice& device, VkImage& image, VkImageView& textureImageView)
+void createTextureImageView(VkDevice& device, Gen_ImageTexture& imageInfo)
 {
   VkImageViewCreateInfo viewInfo{};
   viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-  viewInfo.image = image;
+  viewInfo.image = imageInfo.image;
   viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
   viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
   viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -126,14 +126,14 @@ void createTextureImageView(VkDevice& device, VkImage& image, VkImageView& textu
   viewInfo.subresourceRange.baseArrayLayer = 0;
   viewInfo.subresourceRange.layerCount = 1;
 
-  if (vkCreateImageView(device, &viewInfo, nullptr, &textureImageView) != VK_SUCCESS)
+  if (vkCreateImageView(device, &viewInfo, nullptr, &imageInfo.textureImageView) != VK_SUCCESS)
     GenLogCritical("Failed to create imageview in image.cpp:createTextureImageView");
 
 
 }
 
 
-void createTextureSampler(VkDevice& device, VkPhysicalDevice& physDevice, VkSampler& sampler)
+void createTextureSampler(Gen_Devices& devices, VkSampler& sampler)
 {
   VkSamplerCreateInfo samplerInfo{};
   samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;

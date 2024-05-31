@@ -1,14 +1,14 @@
 #include "physicalDevice.hpp"
 #include "queues.hpp"
-#include "vulkan.hpp"
+#include "../vulkan.hpp"
 #include <iostream>
 #include <limits>
 #include <set>
 #include <vulkan/vulkan_core.h>
-#include "swapchain.hpp"
+
 
 //Pick a GPU we can use for our intentions
-int pickPhysicalDevice(VkInstance& instance, VkDevice& device, VkSurfaceKHR& surface, VkPhysicalDevice& physicalDevice, std::vector<const char*> deviceExtensions)
+int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions)
 {
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -21,9 +21,9 @@ int pickPhysicalDevice(VkInstance& instance, VkDevice& device, VkSurfaceKHR& sur
 
   for (const auto& physDevice : physicalDevices) 
   {
-    if (isDeviceSuitable(physDevice, surface, deviceExtensions)) 
+    if (isDeviceSuitable(devices.physicalDevice, surface, deviceExtensions)) 
     {
-      physicalDevice = physDevice;
+      devices.physicalDevice = physDevice;
       return 1;
     }
   }

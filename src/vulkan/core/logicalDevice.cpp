@@ -5,14 +5,15 @@
 #include <vulkan/vulkan_core.h>
 
 
-
-
-void createLogicalDevice(VkPhysicalDevice& physicalDevice, VkDevice& device, 
-    VkQueue& graphicsQueue, const std::vector<const char*>& validationLayers, 
-    std::vector<const char*> deviceExtensions, VkSurfaceKHR& surface, VkQueue& presentQueue
-    )
+void createLogicalDevice(Gen_Devices& devices, 
+                         VkQueue& graphicsQueue, 
+                         VkQueue& presentQueue,
+                        const std::vector<const char*>& validationLayers, 
+                         std::vector<const char*> deviceExtensions, 
+                         VkSurfaceKHR& surface
+                         )
 {
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
+  QueueFamilyIndices indices = findQueueFamilies(devices.physicalDevice, surface);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -50,12 +51,12 @@ void createLogicalDevice(VkPhysicalDevice& physicalDevice, VkDevice& device,
       createInfo.enabledLayerCount = 0;
   }
 
-  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) 
+  if (vkCreateDevice(devices.physicalDevice, &createInfo, nullptr, &devices.logicalDevice) != VK_SUCCESS) 
   {
     GenLogCritical("Failed to create logical device!");
   }
 
-  vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-  vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+  vkGetDeviceQueue(devices.logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
+  vkGetDeviceQueue(devices.logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
 
 }

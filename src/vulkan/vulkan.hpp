@@ -2,20 +2,20 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include "instance.hpp"
-#include "validationLayers.hpp"
-#include "physicalDevice.hpp"
-#include "logicalDevice.hpp"
-#include "window.hpp"
+#include "core/instance.hpp"
+#include "debug/validationLayers.hpp"
+#include "core/physicalDevice.hpp"
+#include "core/logicalDevice.hpp"
+#include "window/window.hpp"
 #include "swapchain.hpp"
-#include "graphicsPipeline.hpp"
-#include "renderpass.hpp"
-#include "frameBuffers.hpp"
+#include "pipeline/graphicsPipeline.hpp"
+#include "pipeline/renderpass.hpp"
+#include "resources/frameBuffers.hpp"
 #include "commandpool.hpp"
-#include "sync.hpp"
-#include "descriptorsetlayout.hpp"
-#include "uniformbuffers.hpp"
-#include "image.hpp"
+#include "sync/sync.hpp"
+#include "resources/descriptorsetlayout.hpp"
+#include "resources/uniformbuffers.hpp"
+#include "resources/image.hpp"
 
 
 
@@ -29,82 +29,32 @@ class Vulkan
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 
-
-    //Getters and setters
-    VkInstance getInstance() { return m_VkInstance; }; 
-    const std::vector<const char*> getValidationLayers() { return m_ValidationLayers; }
-
-
   private:
 
-    //Runtime
-    VkInstance m_VkInstance;
-    VkDebugUtilsMessengerEXT m_DebugMessenger;
-    const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+  //Runtime
+  VkInstance m_VkInstance;
+  VkDebugUtilsMessengerEXT m_DebugMessenger;
+  const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
-    //Devices
-    VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
-    VkDevice m_Device;
+  Gen_Devices m_Devices;
+  Gen_Swapchain m_SwapchainInfo;
+  Gen_Graphics m_GraphicsInfo;
+  Gen_Window m_WindowInfo;
+  Gen_Buffers m_BufferInfo;
+  Gen_ImageTexture m_ImageTextureInfo;
+  Gen_DescriptorSet m_DescriptorSetInfo;
+  Gen_SyncObjects m_SyncInfo;
 
-    //Queues
-    VkQueue m_GraphicsQueue;
-    VkQueue m_PresentQueue;
+  //Queues
+  VkQueue m_GraphicsQueue;
+  VkQueue m_PresentQueue;
 
-
-    //Swapchain 
-    SwapChainSupportDetails m_SwapChainSupportDetails;
-    VkSwapchainKHR m_SwapChain;
-    std::vector<VkImage> m_SwapChainImages;
-    VkFormat m_SwapChainImageFormat;
-    VkExtent2D m_SwapChainExtent;
-    std::vector<VkImageView> m_SwapChainImageViews;
-    std::vector<VkFramebuffer> m_SwapChainFramebuffers;
-
-    //Graphics
-    VkPipeline m_GraphicsPipeline;
-    VkPipelineLayout m_PipelineLayout;
-    VkRenderPass m_RenderPass;
-
-    //Window
-    GLFWwindow* m_Window;
-    VkSurfaceKHR m_Surface;
-    bool m_FrameBufferResized = false;
+  VkCommandPool m_CommandPool;
+  std::vector<VkCommandBuffer> m_CommandBuffers;
 
 
-    //Commands
-    VkCommandPool m_CommandPool;
-    std::vector<VkCommandBuffer> m_CommandBuffers;
 
-    VkBuffer m_VertexBuffer;
-    VkDeviceMemory m_VertexBufferMemory;
-
-    std::vector<VkBuffer> m_UniformBuffers;
-    std::vector<VkDeviceMemory> m_UniformBufferMemory;
-    std::vector<void*> m_UniformBuffersMapped;
-
-    VkDescriptorSetLayout m_DescriptorSetLayout;
-    VkDescriptorPool m_DescriptorPool;
-    std::vector<VkDescriptorSet> m_DescriptorSets;
-
-    VkBuffer m_IndexBuffer;
-    VkDeviceMemory m_IndexBufferMemory;
-
-    //Sync control
-    std::vector<VkSemaphore> m_ImageAvailableSemaphores; //Ready for render signal
-    std::vector<VkSemaphore> m_RenderFinishedSemaphores; //Rendering has finished signal
-    std::vector<VkFence> m_InFlightFences; //Only one frame rendering at a time
-    uint32_t m_CurrentFrame = 0;
-
-    UniformBufferObject m_UBO;
-
-
-    //Image Texture
-    VkImage m_Image;
-    VkDeviceMemory m_textureImageMemory;
-    VkImageView m_TextureImageView;
-    VkSampler m_TextureSampler;
-
-
+  UniformBufferObject m_UBO;
 
   const std::vector<Vertex> m_Vertices = 
   {
@@ -115,18 +65,14 @@ class Vulkan
   };
 
 
-    const std::vector<uint16_t> m_Indices
-    {
-      {0, 1, 2, 2, 3, 0}
-    };
+  const std::vector<uint16_t> m_Indices
+  {
+    {0, 1, 2, 2, 3, 0}
+  };
 
 
-    const std::vector<const char*> m_DeviceExtensions = 
-    {
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-
-
-    
-
+  const std::vector<const char*> m_DeviceExtensions = 
+  {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+  };
 };

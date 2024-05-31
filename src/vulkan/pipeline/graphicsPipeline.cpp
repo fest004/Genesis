@@ -35,7 +35,8 @@ VkPipelineShaderStageCreateInfo createVertexShaderInfo(VkShaderModule vertModule
   return fragShaderStageInfo;
 }
 
-void createGraphicsPipelines(VkDevice& device, VkPipeline& graphicsPipeline, VkPipelineLayout& pipelineLayout, const VkExtent2D& extent, VkRenderPass& renderpass, VkDescriptorSetLayout& descripterLayout)
+
+void createGraphicsPipelines(VkDevice& device, Gen_Graphics& graphicsInfo, const VkExtent2D& extent, VkDescriptorSetLayout& descripterLayout)
 {
   auto fragModule   = createShaderModule(device, "../src/shaders/frag.spv");
   auto vertexModule = createShaderModule(device, "../src/shaders/vert.spv");
@@ -158,7 +159,7 @@ auto attributeDescription = Vertex::getAttributeDescriptions();
   pipelineLayoutInfo.setLayoutCount = 1;
   pipelineLayoutInfo.pSetLayouts = &descripterLayout;
 
-  if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &graphicsInfo.pipelineLayout) != VK_SUCCESS)
     GenLogCritical("Failed to create Graphics Pipeline Layout! In graphicsPipeline.cpp");
 
 
@@ -175,14 +176,14 @@ auto attributeDescription = Vertex::getAttributeDescriptions();
   pipelineInfo.pColorBlendState = &colorBlending;
   pipelineInfo.pDynamicState = &dynamicState;
 
-  pipelineInfo.layout = pipelineLayout;
-  pipelineInfo.renderPass = renderpass;
+  pipelineInfo.layout = graphicsInfo.pipelineLayout;
+  pipelineInfo.renderPass = graphicsInfo.renderPass;
   pipelineInfo.subpass = 0;
 
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
   pipelineInfo.basePipelineIndex = -1;
 
-  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsInfo.graphicsPipeline) != VK_SUCCESS)
     GenLogCritical("Failed to create graphics pipeline! In file graphicsPipeline.cpp")
 
   //CLEANUP

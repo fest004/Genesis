@@ -1,4 +1,4 @@
-#include "../core.h"
+#include "../../core.h"
 #include "frameBuffers.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -11,15 +11,15 @@ uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, V
 
 
 
-void createFrameBuffers(const VkDevice& device, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView>& swapChainImageViews, VkRenderPass& renderpass)
+void createFrameBuffers(const VkDevice& device, Gen_Swapchain& swapChainInfo, VkRenderPass& renderpass)
 {
-  swapChainFramebuffers.resize(swapChainImageViews.size());
+  swapChainInfo.swapChainFramebuffers.resize(swapChainInfo.swapChainImageViews.size());
 
-  for (size_t i = 0; i < swapChainImageViews.size(); i++)
+  for (size_t i = 0; i < swapChainInfo.swapChainImageViews.size(); i++)
   {
     VkImageView attachments[] = 
     {
-      swapChainImageViews[i]
+      swapChainInfo.swapChainImageViews[i]
     };
 
  VkFramebufferCreateInfo frameBufferInfo{};
@@ -27,19 +27,18 @@ void createFrameBuffers(const VkDevice& device, VkExtent2D& extent, std::vector<
     frameBufferInfo.renderPass = renderpass; 
     frameBufferInfo.attachmentCount = 1;
     frameBufferInfo.pAttachments = attachments;
-    frameBufferInfo.width = extent.width;
-    frameBufferInfo.height = extent.height;
+    frameBufferInfo.width = swapChainInfo.swapChainExtent.width;
+    frameBufferInfo.height = swapChainInfo.swapChainExtent.height;
     frameBufferInfo.layers = 1;
 
 
-   if (vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+   if (vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainInfo.swapChainFramebuffers[i]) != VK_SUCCESS)
       GenLogCritical("Failed to create framebuffer! In framebuffer.cpp");
  }
 }
 
 
-
-void createBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) 
+void createBuffer(Gen_Devices& devices, VkBuffer& buffer, VkDeviceMemory& deviceMemory, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) 
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -47,87 +46,82 @@ void createBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceSize s
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+    if (vkCreateBuffer(devices.logicalDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(devices.logicalDevice, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(physDevice, memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = findMemoryType(devices.physicalDevice, memRequirements.memoryTypeBits, properties);
 
   //TODO system that removes the need to allocate memory on every buffer, it is bad practice in larger
   //applications
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(devices.logicalDevice, &allocInfo, nullptr, &deviceMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate buffer memory!");
     }
 
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    vkBindBufferMemory(devices.logicalDevice, buffer, deviceMemory, 0);
 }
 
 
-void createIndexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkDeviceMemory& indexBufferMemory, VkBuffer& indexBuffer, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
+void createIndexBuffer(Gen_Devices& devices, Gen_Buffers& bufferInfo, VkQueue& graphicsQueue, VkCommandPool& commandPool, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
 {
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   VkBuffer stagingBuffer; 
   VkDeviceMemory stagingBufferMemory;
-  createBuffer(device, physDevice, bufferSize, 
-  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-  stagingBuffer, stagingBufferMemory);
+
+  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
   void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+  vkMapMemory(devices.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(device, stagingBufferMemory);
+  vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
 
  
-  createBuffer(device, physDevice, bufferSize, 
-  VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
-  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-  indexBuffer, indexBufferMemory);
-  copyBuffer(device, physDevice, graphicsQueue, stagingBuffer, indexBuffer, bufferSize, commandPool);
+  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+  copyBuffer(devices.logicalDevice, graphicsQueue, stagingBuffer, bufferInfo.indexBuffer, bufferSize, commandPool);
+
+  vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
+  vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);
 }
 
-void createVertexBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkDeviceMemory& vertexBufferMemory, VkBuffer& vertexBuffer, const std::vector<Vertex>& vertices)
+
+void createVertexBuffer(Gen_Devices& devices, Gen_Buffers& buffers, VkQueue& graphicsQueue, VkCommandPool& commandPool, const std::vector<Vertex>& vertices)
 {
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   VkBuffer stagingBuffer; 
   VkDeviceMemory stagingBufferMemory;
-  createBuffer(device, physDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-               stagingBuffer, 
-               stagingBufferMemory);
 
-
+  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
   void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+  vkMapMemory(devices.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(device, stagingBufferMemory);
+  vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
 
 
-  createBuffer(device, physDevice, bufferSize, 
+  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize,
                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  copyBuffer(device, physDevice, graphicsQueue, stagingBuffer, vertexBuffer, bufferSize, commandPool);
 
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  copyBuffer(devices.logicalDevice, graphicsQueue, stagingBuffer, buffers.vertexBuffer, bufferSize, commandPool);
+
+  vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
+  vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);
 
 }
 
 
-void copyBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, const VkDeviceSize& size, VkCommandPool& commandPool) 
+void copyBuffer(VkDevice& device, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, const VkDeviceSize& size, VkCommandPool& commandPool) 
 {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -158,7 +152,7 @@ void copyBuffer(VkDevice& device, VkPhysicalDevice& physDevice, VkQueue& graphic
   submitInfo.pCommandBuffers = &commandBuffer;
   vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(graphicsQueue);
-  vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+  vkFreeCommandBuffers(device , commandPool, 1, &commandBuffer);
 
 
 
