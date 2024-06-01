@@ -1,5 +1,5 @@
-#include "../core.h"
 #include <vulkan/vulkan_core.h>
+#include "layouttransition.hpp"
 
 VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool)
 {

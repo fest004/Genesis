@@ -77,7 +77,8 @@ struct Gen_Buffers
   std::vector<VkDeviceMemory> uniformBuffersMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
-  std::vector<void*> m_UniformBuffersMapped;
+  std::vector<void*> uniformBuffersMapped;
+  std::vector<VkCommandBuffer> commandBuffers;
 };
 
 struct Gen_SyncObjects

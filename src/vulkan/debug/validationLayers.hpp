@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+#include "../../core.h"
 
 /*
 Validation Layers notice: 

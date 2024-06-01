@@ -3,7 +3,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <algorithm>
-#include "validationLayers.hpp"
+#include "../debug/validationLayers.hpp"
 //First VK interfacing I do, will be overcommented for sake of learning as I go
 
 int createInstance(VkInstance& instance, const std::vector<const char*>& validationLayers)

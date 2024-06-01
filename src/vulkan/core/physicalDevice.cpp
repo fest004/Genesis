@@ -33,7 +33,7 @@ int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR&
   return 0;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
+bool isDeviceSuitable(VkPhysicalDevice& device, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
 {
     QueueFamilyIndices indices = findQueueFamilies(device, surface);
 

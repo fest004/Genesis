@@ -1,7 +1,6 @@
 #include "validationLayers.hpp"
 #include <cstring>
 #include <vulkan/vulkan_core.h>
-#include "../core.h"
 
 
 bool checkValidationLayers(const std::vector<const char*>& validationLayers)

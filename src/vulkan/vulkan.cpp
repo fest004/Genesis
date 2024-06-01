@@ -66,7 +66,6 @@ int Vulkan::update()
   {
     glfwPollEvents();
     drawFrame();
-
   }
   vkDeviceWaitIdle(m_Devices.logicalDevice);
   return 1;
@@ -79,18 +78,15 @@ void Vulkan::drawFrame()
   
   //Acquire new image from swapchain
   uint32_t imageIndex; 
-  VkResult result = vkAcquireNextImageKHR(m_Device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+  VkResult result = vkAcquireNextImageKHR(m_Devices.logicalDevice, m_SwapchainInfo.swapChain, 
+                                          UINT64_MAX, m_SyncInfo.imageAvailableSemaphores[m_CurrentFrame], 
+                                          VK_NULL_HANDLE, &imageIndex);
 
 
   //Check if we need to recreate swapchain and if we do we recreate it lol
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
-    recreateSwapchain(
-      m_Device, m_PhysicalDevice, m_Surface, 
-      m_SwapChain, m_Window, m_SwapChainImages, 
-      m_SwapChainImageFormat, m_SwapChainExtent, 
-      m_SwapChainImageViews, m_RenderPass, m_SwapChainFramebuffers
-    );
+    recreateSwapchain(m_Devices, m_SwapchainInfo, m_WindowInfo, m_GraphicsInfo.renderPass);
   } 
   else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
   {
@@ -99,22 +95,22 @@ void Vulkan::drawFrame()
   }
 
 
-  updateUniformBuffer(m_UniformBuffersMapped, m_CurrentFrame, m_SwapChainExtent);
-  vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]); //Reset manually
+  updateUniformBuffer(m_BufferInfo.uniformBuffersMapped, m_CurrentFrame, m_SwapchainInfo.swapChainExtent);
+  vkResetFences(m_Devices.logicalDevice, 1, &m_SyncInfo.inFlightFences[m_CurrentFrame]); //Reset manually
 
   //Record command buffer that draws scene to image
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
 
 
-  recordCommandBuffer(m_GraphicsPipeline, m_PipelineLayout, m_VertexBuffer, m_IndexBuffer, m_Vertices, 
-                      m_SwapChainExtent, m_SwapChainFramebuffers, m_RenderPass, m_CommandBuffers[m_CurrentFrame], imageIndex, m_Indices, m_CurrentFrame, m_DescriptorSets);
 
+ 
+  recordCommandBuffer(m_GraphicsInfo, m_SwapchainInfo, m_BufferInfo, m_DescriptorSetInfo, m_Indices, m_CurrentFrame, imageIndex);
   
   //Submit recorded command buffer
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame]};
+  VkSemaphore waitSemaphores[] = { m_SyncInfo.imageAvailableSemaphores[m_CurrentFrame]};
   VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
@@ -123,12 +119,12 @@ void Vulkan::drawFrame()
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
 
-  VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] }; 
+  VkSemaphore signalSemaphores[] = { m_SyncInfo.renderFinishedSemaphores[m_CurrentFrame] }; 
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]) != VK_SUCCESS)
-      GenLogCritical("Failed to submit draw command buffer! In window.cpp");
+  if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_SyncInfo.inFlightFences[m_CurrentFrame]) != VK_SUCCESS)
+    GenLogCritical("Failed to submit draw command buffer! In window.cpp");
 
   //Present swap chain image
 
@@ -137,7 +133,7 @@ void Vulkan::drawFrame()
   presentInfo.waitSemaphoreCount = 1;
   presentInfo.pWaitSemaphores = signalSemaphores; 
 
-  VkSwapchainKHR swapChains[] = { m_SwapChain };
+  VkSwapchainKHR swapChains[] = { m_SwapchainInfo.swapChain };
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = &imageIndex;
@@ -145,15 +141,10 @@ void Vulkan::drawFrame()
 
   result = vkQueuePresentKHR(m_PresentQueue, &presentInfo); //Oh my LOOORD
 
-  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FrameBufferResized)
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_WindowInfo.frameBufferResized)
   {
-    m_FrameBufferResized = false; //Reset the flag of resetting
-    recreateSwapchain(
-      m_Device, m_PhysicalDevice, m_Surface, 
-      m_SwapChain, m_Window, m_SwapChainImages, 
-      m_SwapChainImageFormat, m_SwapChainExtent, 
-      m_SwapChainImageViews, m_RenderPass, m_SwapChainFramebuffers
-    );
+    m_WindowInfo.frameBufferResized = false; //Reset the flag of resetting
+    recreateSwapchain(m_Devices, m_SwapchainInfo, m_WindowInfo, m_GraphicsInfo.renderPass);
   } 
   else if (result != VK_SUCCESS) 
   {
@@ -167,48 +158,50 @@ void Vulkan::drawFrame()
 
 void Vulkan::cleanup()
 {
-  cleanupSwapChain(m_Device, m_SwapChain, m_SwapChainFramebuffers, m_SwapChainImageViews);
+  VkDevice device = m_Devices.logicalDevice;
 
-  vkDestroySampler(m_Device, m_TextureSampler, nullptr);
-  vkDestroyImageView(m_Device, m_TextureImageView, nullptr);
+  cleanupSwapChain(device, m_SwapchainInfo);
 
-
-  vkDestroyImage(m_Device, m_Image, nullptr);
-  vkFreeMemory(m_Device, m_textureImageMemory, nullptr);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    vkDestroyBuffer(m_Device, m_UniformBuffers[i], nullptr);
-    vkFreeMemory(m_Device, m_UniformBufferMemory[i], nullptr);
-  }
+  vkDestroySampler(device, m_ImageTextureInfo.textureSampler, nullptr);
+  vkDestroyImageView(device, m_ImageTextureInfo.textureImageView, nullptr);
 
 
-  vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
-  vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
-  vkDestroyBuffer(m_Device, m_IndexBuffer, nullptr);
-  vkFreeMemory(m_Device, m_VertexBufferMemory, nullptr);
-  vkFreeMemory(m_Device, m_IndexBufferMemory, nullptr);
-
+  vkDestroyImage(device, m_ImageTextureInfo.image, nullptr);
+  vkFreeMemory(device, m_ImageTextureInfo.textureImageMemory, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    vkDestroySemaphore(m_Device, m_ImageAvailableSemaphores[i], nullptr);
-    vkDestroySemaphore(m_Device, m_RenderFinishedSemaphores[i], nullptr);
-    vkDestroyFence(m_Device, m_InFlightFences[i], nullptr);
+    vkDestroyBuffer(device, m_BufferInfo.uniformBuffers[i], nullptr);
+    vkFreeMemory(device, m_BufferInfo.uniformBuffersMemory[i], nullptr);
   }
 
-  vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
-  vkDestroyPipelineLayout(m_Device, m_PipelineLayout, nullptr);
-  vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
-  vkDestroyDevice(m_Device, nullptr);
+
+  vkDestroyDescriptorSetLayout(device, m_DescriptorSetInfo.descriptorSetLayout, nullptr);
+  vkDestroyBuffer(device, m_BufferInfo.vertexBuffer, nullptr);
+  vkDestroyBuffer(device, m_BufferInfo.indexBuffer, nullptr);
+  vkFreeMemory(device, m_BufferInfo.vertexBufferMemory, nullptr);
+  vkFreeMemory(device, m_BufferInfo.indexBufferMemory, nullptr);
+
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroySemaphore(device, m_SyncInfo.imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(device, m_SyncInfo.renderFinishedSemaphores[i], nullptr);
+    vkDestroyFence(device, m_SyncInfo.inFlightFences[i], nullptr);
+  }
+
+  vkDestroyCommandPool(device, m_CommandPool, nullptr);
+  vkDestroyPipelineLayout(device, m_GraphicsInfo.pipelineLayout, nullptr);
+  vkDestroyRenderPass(device, m_GraphicsInfo.renderPass, nullptr);
+  vkDestroyDevice(device, nullptr);
 
   if (DEBUG)
     DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
 
-  vkDestroySurfaceKHR(m_VkInstance, m_Surface, nullptr);
+  vkDestroySurfaceKHR(m_VkInstance, m_WindowInfo.surface, nullptr);
   vkDestroyInstance(m_VkInstance, nullptr);
 
-  glfwDestroyWindow(m_Window);
+  glfwDestroyWindow(m_WindowInfo.window);
   glfwTerminate();
 }
 

@@ -193,9 +193,7 @@ void createImageViews(VkDevice& device, Gen_Swapchain& swapChainInfo)
 
 }
 
-void recreateSwapchain(
-Gen_Devices& devices, Gen_Swapchain& swapChainInfo, Gen_Window& windowInfo, VkRenderPass& renderPass
-)
+void recreateSwapchain(Gen_Devices& devices, Gen_Swapchain& swapChainInfo, Gen_Window& windowInfo, VkRenderPass& renderPass)
 {
   if (DEBUG)
     GenLogTrace("Recreate swapchain! In swapchain.cpp:recreateSwapchain()");
@@ -217,23 +215,22 @@ Gen_Devices& devices, Gen_Swapchain& swapChainInfo, Gen_Window& windowInfo, VkRe
 
 
 
-  createFrameBuffers(devices.logicalDevice, swapChainInfo.swapChainExtent, swapChainInfo.swapChainFramebuffers, swapChainInfo.swapChainImageViews, renderPass);
-
+  createFrameBuffers(devices.logicalDevice, swapChainInfo, renderPass);
 }
 
-void cleanupSwapChain(VkDevice& device, VkSwapchainKHR& swapchain, std::vector<VkFramebuffer>& framebuffers, std::vector<VkImageView>& imageViews)
+void cleanupSwapChain(VkDevice& device, Gen_Swapchain& swapInfo)
 {
-  for (auto framebuffer : framebuffers)
+  for (auto framebuffer : swapInfo.swapChainFramebuffers)
   {
     vkDestroyFramebuffer(device, framebuffer,nullptr); 
   }
 
-  for (auto imageView : imageViews)
+  for (auto imageView : swapInfo.swapChainImageViews)
   {
     vkDestroyImageView(device, imageView, nullptr);
   }
 
-  vkDestroySwapchainKHR(device, swapchain, nullptr);
+  vkDestroySwapchainKHR(device, swapInfo.swapChain, nullptr);
 }
 
 

@@ -52,6 +52,8 @@ class Vulkan
   VkCommandPool m_CommandPool;
   std::vector<VkCommandBuffer> m_CommandBuffers;
 
+  uint32_t m_CurrentFrame = 0;
+
 
 
   UniformBufferObject m_UBO;

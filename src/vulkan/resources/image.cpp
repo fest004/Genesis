@@ -145,7 +145,7 @@ void createTextureSampler(Gen_Devices& devices, VkSampler& sampler)
   samplerInfo.anisotropyEnable = VK_TRUE;
 
   VkPhysicalDeviceProperties physProperties{};
-  vkGetPhysicalDeviceProperties(physDevice, &physProperties);
+  vkGetPhysicalDeviceProperties(devices.physicalDevice, &physProperties);
 
   samplerInfo.maxAnisotropy = physProperties.limits.maxSamplerAnisotropy; 
   samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -157,7 +157,7 @@ void createTextureSampler(Gen_Devices& devices, VkSampler& sampler)
   samplerInfo.minLod = 0.0f;
   samplerInfo.maxLod = 0.0f;
 
-  if (vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+  if (vkCreateSampler(devices.logicalDevice, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
     GenLogCritical("Failed to create sampler! in image.cpp:createTextureSampler");
 
 }

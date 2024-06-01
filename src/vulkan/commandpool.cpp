@@ -6,24 +6,28 @@
 
 
 
-void recordCommandBuffer(VkPipeline& pipeline, VkPipelineLayout& layout, VkBuffer& vertexBuffer, VkBuffer& indexBuffer, const std::vector<Vertex>& vertices, VkExtent2D& extent, std::vector<VkFramebuffer>& swapChainFrameBuffers, VkRenderPass& renderpass, VkCommandBuffer& commandBuffer, uint32_t index, const std::vector<uint16_t>& indices, uint32_t currentFrame, std::vector<VkDescriptorSet>& descriptorSets)
-
+void recordCommandBuffer(Gen_Graphics& graphicsInfo, Gen_Swapchain& swapchain, 
+                         Gen_Buffers& bufferInfo, 
+                         Gen_DescriptorSet& desc, const std::vector<uint16_t> indices,
+                         uint32_t& currentFrame, uint32_t& index)
 {
-  VkCommandBufferBeginInfo beginInfo{};
+   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   beginInfo.flags = 0;
   beginInfo.pInheritanceInfo = nullptr;
 
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  VkCommandBuffer comBuffer = bufferInfo.commandBuffers[currentFrame];
+
+  if (vkBeginCommandBuffer(comBuffer, &beginInfo) != VK_SUCCESS)
     GenLogCritical(("Failed to begin command buffer! In commandpool.cpp"));
 
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-  renderPassInfo.renderPass = renderpass;
+  renderPassInfo.renderPass = graphicsInfo.renderPass;
 
-  renderPassInfo.framebuffer = swapChainFrameBuffers[index];
+  renderPassInfo.framebuffer = swapchain.swapChainFramebuffers[index];
   renderPassInfo.renderArea.offset = {0, 0};
-  renderPassInfo.renderArea.extent = extent;
+  renderPassInfo.renderArea.extent = swapchain.swapChainExtent;
    
   VkClearValue clearColor = 
   {
@@ -32,38 +36,38 @@ void recordCommandBuffer(VkPipeline& pipeline, VkPipelineLayout& layout, VkBuffe
   renderPassInfo.clearValueCount = 1;
   renderPassInfo.pClearValues = &clearColor;
 
-  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBeginRenderPass(bufferInfo.commandBuffers[currentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBindPipeline(comBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsInfo.graphicsPipeline);
 
   VkViewport viewport{};
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = static_cast<float>(extent.width);
-  viewport.height= static_cast<float>(extent.height);
+  viewport.width = static_cast<float>(swapchain.swapChainExtent.width);
+  viewport.height= static_cast<float>(swapchain.swapChainExtent.height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  vkCmdSetViewport(comBuffer, 0, 1, &viewport);
 
   VkRect2D scissor{};
   scissor.offset = {0, 0};
-  scissor.extent = extent;
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  scissor.extent = swapchain.swapChainExtent;
+  vkCmdSetScissor(comBuffer, 0, 1, &scissor);
 
-  VkBuffer vertexBuffers[] = { vertexBuffer };
+  VkBuffer vertexBuffers[] = { bufferInfo.vertexBuffer };
   VkDeviceSize offsets[] = {0};
 
 
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindVertexBuffers(comBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(comBuffer, bufferInfo.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  vkCmdBindDescriptorSets(comBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsInfo.pipelineLayout, 0, 1, &desc.descriptorsSets[currentFrame], 0, nullptr);
 
 
 
-  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+  vkCmdDrawIndexed(comBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
-  vkCmdEndRenderPass(commandBuffer);
+  vkCmdEndRenderPass(comBuffer);
 
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+  if (vkEndCommandBuffer(comBuffer) != VK_SUCCESS)
     GenLogCritical("Failed to end command buffer! In file commandpool.cpp");
 
 }
