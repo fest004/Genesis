@@ -1,47 +1,7 @@
 #include <vulkan/vulkan_core.h>
 #include "layouttransition.hpp"
+#include "frameBuffers.hpp"
 
-VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool)
-{
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool;
-  allocInfo.commandBufferCount = 1;
-
-
-  VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType =  VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-  vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-
-  return commandBuffer;
-}
-
-
-void endSingleGameCommands(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue, VkCommandBuffer& commandBuffer)
-{
-  vkEndCommandBuffer(commandBuffer);
-
-
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
-
-
-
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(queue);
-
-  vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-}
 
 
 void transitionImageLayout(VkDevice& device, VkQueue& queue, VkCommandPool& commandPool, const VkImage& image, const VkFormat& format, const VkImageLayout& oldLayout, const VkImageLayout newLayout) 
@@ -89,7 +49,7 @@ void transitionImageLayout(VkDevice& device, VkQueue& queue, VkCommandPool& comm
 
   vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
   
-  endSingleGameCommands(device, commandPool, queue, commandBuffer);
+  endSingleTimeCommands(device, queue, commandPool, commandBuffer);
 }
 
 

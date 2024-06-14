@@ -19,9 +19,11 @@ int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR&
   std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
   vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
 
+  GenLogTrace("deviceCount: {}", deviceCount);
+
   for (const auto& physDevice : physicalDevices) 
   {
-    if (isDeviceSuitable(devices.physicalDevice, surface, deviceExtensions)) 
+    if (isDeviceSuitable(physDevice, surface, deviceExtensions)) 
     {
       devices.physicalDevice = physDevice;
       return 1;
@@ -33,21 +35,24 @@ int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR&
   return 0;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice& device, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
+bool isDeviceSuitable(VkPhysicalDevice physDevice, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(device, surface);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device, deviceExtensions);
+    std::cout << &physDevice << std::endl;
+
+    QueueFamilyIndices indices = findQueueFamilies(physDevice, surface);
+
+    bool extensionsSupported = checkDeviceExtensionSupport(physDevice, deviceExtensions);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-      SwapChainSupportDetails swapChainSupport = querySwapchainSupport(device, surface);
+      SwapChainSupportDetails swapChainSupport = querySwapchainSupport(physDevice, surface);
       swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
     
     VkPhysicalDeviceFeatures supportedFeatures;
-    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+    vkGetPhysicalDeviceFeatures(physDevice, &supportedFeatures);
 
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }

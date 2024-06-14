@@ -3,9 +3,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iostream>
+#include <ostream>
 #include <vulkan/vulkan_core.h>
 
-uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 
 
@@ -83,10 +84,10 @@ void createIndexBuffer(Gen_Devices& devices, Gen_Buffers& bufferInfo, VkQueue& g
   vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
 
  
-  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  createBuffer(devices, bufferInfo.indexBuffer, bufferInfo.vertexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
-  copyBuffer(devices.logicalDevice, graphicsQueue, stagingBuffer, bufferInfo.indexBuffer, bufferSize, commandPool);
+    copyBuffer(devices.logicalDevice, commandPool, graphicsQueue, stagingBuffer, bufferInfo.indexBuffer, bufferSize);
 
   vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
   vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);
@@ -108,12 +109,14 @@ void createVertexBuffer(Gen_Devices& devices, Gen_Buffers& buffers, VkQueue& gra
   vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
 
 
-  createBuffer(devices, stagingBuffer, stagingBufferMemory, bufferSize,
+  createBuffer(devices, buffers.vertexBuffer, buffers.vertexBufferMemory, bufferSize,
                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
-  copyBuffer(devices.logicalDevice, graphicsQueue, stagingBuffer, buffers.vertexBuffer, bufferSize, commandPool);
+  std::cout << &buffers.vertexBuffer << std::endl; 
+
+  copyBuffer(devices.logicalDevice, commandPool, graphicsQueue, stagingBuffer, buffers.vertexBuffer, bufferSize);
 
   vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
   vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);
@@ -121,42 +124,15 @@ void createVertexBuffer(Gen_Devices& devices, Gen_Buffers& buffers, VkQueue& gra
 }
 
 
-void copyBuffer(VkDevice& device, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, const VkDeviceSize& size, VkCommandPool& commandPool) 
+void copyBuffer(VkDevice device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
 {
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool;
-  allocInfo.commandBufferCount = 1;
+      VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
-  VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-  vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-  VkBufferCopy copy{};
-  copy.srcOffset = 0;
-  copy.dstOffset = 0;
-  copy.size = size;
-  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copy);
-
-  vkEndCommandBuffer(commandBuffer);
-  
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
-  vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(graphicsQueue);
-  vkFreeCommandBuffers(device , commandPool, 1, &commandBuffer);
-
-
-
-}
+      VkBufferCopy copyRegion{};
+      copyRegion.size = size;
+      vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+      endSingleTimeCommands(device, queue, commandPool, commandBuffer);
+    }
 
 
 uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -174,7 +150,43 @@ uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, V
 
   GenLogCritical("Failed to find memory type!");
   return 69-420;
+}
 
+
+
+
+VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool) 
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    return commandBuffer;
+}
+
+void endSingleTimeCommands(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkCommandBuffer& commandBuffer) {
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);
+
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
 

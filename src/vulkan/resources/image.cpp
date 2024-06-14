@@ -1,5 +1,8 @@
 #include "image.hpp"
+#include <iostream>
+#include <ostream>
 #include <vulkan/vulkan_core.h>
+#include "frameBuffers.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../../libs/stb_image.h"
@@ -8,12 +11,15 @@
 
 
 
-void createImageTexture(Gen_Devices& devices, Gen_ImageTexture imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath)
+void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath)
 {
   int texWidth, texHeight, texChannels;
 
   stbi_uc* pixels = stbi_load(filepath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
   VkDeviceSize imageSize = texHeight * texWidth * 4;
+
+  std::cout << __FILE__ << std::endl; 
+  std::cout << filepath << std::endl;
   
   if (!pixels)
     GenLogCritical("Failed to load image with stb! In image.cpp");
@@ -103,13 +109,9 @@ void copyBufferToImage(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& 
 
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+  endSingleTimeCommands(device, graphicsQueue, commandPool, commandBuffer);
 
 
-
-
-
-
-  endSingleGameCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 
 

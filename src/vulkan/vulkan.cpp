@@ -38,16 +38,21 @@ int Vulkan::initVulkan()
 
   createCommandPool(m_Devices, m_WindowInfo.surface, m_CommandPool);
 
-  createImageTexture(m_Devices, m_ImageTextureInfo, m_GraphicsQueue, m_CommandPool, "../image/sanic.png");
+  createImageTexture(m_Devices, m_ImageTextureInfo, m_GraphicsQueue, m_CommandPool, "../images/sanic.png");
 
   createTextureImageView(m_Devices.logicalDevice, m_ImageTextureInfo);
 
   createTextureSampler(m_Devices, m_ImageTextureInfo.textureSampler);
 
+  GenLogTrace("Before vertex Buffer");
   createVertexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Vertices);
 
+
+  GenLogTrace("Before Index Buffer");
   createIndexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Indices, m_Vertices);
 
+
+  GenLogTrace("Before Uniform Buffer");
   createUniformBuffers(m_Devices, m_BufferInfo);
 
   createDescriptorPool(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorPool);

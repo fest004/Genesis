@@ -9,7 +9,7 @@ void createImage(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory&
                  VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
 
-void createImageTexture(Gen_Devices& devices, Gen_ImageTexture imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath);
+void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath);
 
 
 

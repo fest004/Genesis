@@ -4,6 +4,8 @@
 // overly object oriented
 
 
+uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
 void createFrameBuffers(const VkDevice& device, Gen_Swapchain& swapChainInfo, VkRenderPass& renderpass);
 
 
@@ -17,11 +19,14 @@ void createBuffer(Gen_Devices& devices, VkBuffer& buffer,
 
 
 
-void copyBuffer(VkDevice& device, VkQueue& graphicsQueue, 
-                VkBuffer& srcBuffer, VkBuffer& dstBuffer, 
-                const VkDeviceSize& size, VkCommandPool& commandPool);
-
+void copyBuffer(VkDevice device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+//void copyBuffer(VkDevice device, VkCommandPool& commandPool, VkQueue queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 void createIndexBuffer(Gen_Devices& devices, Gen_Buffers& bufferInfo, VkQueue& graphicsQueue, VkCommandPool& commandPool, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
 
-uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool);
+void endSingleTimeCommands(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkCommandBuffer& commandBuffer);
+
+
+
