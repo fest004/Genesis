@@ -134,31 +134,38 @@ void Vulkan::drawFrame()
 }
 
 
+  
+
 void Vulkan::cleanup()
 {
 
   cleanupSwapChain(m_Devices.logicalDevice, m_SwapchainInfo);
 
-  vkDestroySampler(m_Devices.logicalDevice, m_ImageTextureInfo.textureSampler, nullptr);
-  vkDestroyImageView(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageView, nullptr);
-
-
-  vkDestroyImage(m_Devices.logicalDevice, m_ImageTextureInfo.image, nullptr);
-  vkFreeMemory(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageMemory, nullptr);
+  vkDestroyPipeline(m_Devices.logicalDevice, m_GraphicsInfo.graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(m_Devices.logicalDevice, m_GraphicsInfo.pipelineLayout, nullptr);
+  vkDestroyRenderPass(m_Devices.logicalDevice, m_GraphicsInfo.renderPass, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.uniformBuffers[i], nullptr);
     vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.uniformBuffersMemory[i], nullptr);
+    std::cout << "Uniformbuffermemory: " << i << " = " << &m_BufferInfo.uniformBuffersMemory[i] << "\n"; 
   }
+  std::cout << "VertexBufferMemory: " << " = " << &m_BufferInfo.vertexBufferMemory << "\n"; 
+  std::cout << "IndexBufferMemory: " << " = " << &m_BufferInfo.vertexBufferMemory << "\n"; 
 
-
+  vkDestroyDescriptorPool(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorPool, nullptr);
+  vkDestroySampler(m_Devices.logicalDevice, m_ImageTextureInfo.textureSampler, nullptr);
+  vkDestroyImageView(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageView, nullptr);
+  vkDestroyImage(m_Devices.logicalDevice, m_ImageTextureInfo.image, nullptr);
+  vkFreeMemory(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageMemory, nullptr);
   vkDestroyDescriptorSetLayout(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorSetLayout, nullptr);
-  vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.vertexBuffer, nullptr);
+  
   vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.indexBuffer, nullptr);
-  vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.vertexBufferMemory, nullptr);
   vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.indexBufferMemory, nullptr);
 
+  vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.vertexBuffer, nullptr);
+  vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.vertexBufferMemory, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
@@ -166,10 +173,10 @@ void Vulkan::cleanup()
     vkDestroySemaphore(m_Devices.logicalDevice, m_SyncInfo.renderFinishedSemaphores[i], nullptr);
     vkDestroyFence(m_Devices.logicalDevice, m_SyncInfo.inFlightFences[i], nullptr);
   }
+  
 
   vkDestroyCommandPool(m_Devices.logicalDevice, m_CommandPool, nullptr);
-  vkDestroyPipelineLayout(m_Devices.logicalDevice, m_GraphicsInfo.pipelineLayout, nullptr);
-  vkDestroyRenderPass(m_Devices.logicalDevice, m_GraphicsInfo.renderPass, nullptr);
+  vkDeviceWaitIdle(m_Devices.logicalDevice);
   vkDestroyDevice(m_Devices.logicalDevice, nullptr);
 
   if (DEBUG)

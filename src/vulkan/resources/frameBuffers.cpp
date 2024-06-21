@@ -65,6 +65,8 @@ void createBuffer(Gen_Devices& devices, VkBuffer& buffer, VkDeviceMemory& device
         throw std::runtime_error("failed to allocate buffer memory!");
     }
 
+    std::cout << &deviceMemory << "\n";
+
     vkBindBufferMemory(devices.logicalDevice, buffer, deviceMemory, 0);
 }
 
