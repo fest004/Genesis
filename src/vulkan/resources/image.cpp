@@ -18,8 +18,6 @@ void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQue
   stbi_uc* pixels = stbi_load(filepath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
   VkDeviceSize imageSize = texHeight * texWidth * 4;
 
-  std::cout << __FILE__ << std::endl; 
-  std::cout << filepath << std::endl;
   
   if (!pixels)
     GenLogCritical("Failed to load image with stb! In image.cpp");

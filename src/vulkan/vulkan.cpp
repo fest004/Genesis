@@ -44,19 +44,17 @@ int Vulkan::initVulkan()
 
   createTextureSampler(m_Devices, m_ImageTextureInfo.textureSampler);
 
-  GenLogTrace("Before vertex Buffer");
   createVertexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Vertices);
 
-
-  GenLogTrace("Before Index Buffer");
   createIndexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Indices, m_Vertices);
 
-
-  GenLogTrace("Before Uniform Buffer");
   createUniformBuffers(m_Devices, m_BufferInfo);
 
+  GenLogTrace("Before descriptor pool");
   createDescriptorPool(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorPool);
 
+
+  GenLogTrace("Before descriptor sets");
   createDescriptorSets(m_Devices.logicalDevice, m_BufferInfo.uniformBuffers, m_ImageTextureInfo, m_DescriptorSetInfo);
 
   createCommandBuffers(m_Devices.logicalDevice, m_CommandPool,m_CommandBuffers);
