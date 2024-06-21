@@ -16,6 +16,7 @@ void recordCommandBuffer(Gen_Graphics& graphicsInfo, Gen_Swapchain& swapchain,
   beginInfo.flags = 0;
   beginInfo.pInheritanceInfo = nullptr;
 
+
   VkCommandBuffer comBuffer = bufferInfo.commandBuffers[currentFrame];
 
   if (vkBeginCommandBuffer(comBuffer, &beginInfo) != VK_SUCCESS)
@@ -31,7 +32,7 @@ void recordCommandBuffer(Gen_Graphics& graphicsInfo, Gen_Swapchain& swapchain,
    
   VkClearValue clearColor = 
   {
-    {{0.0f, 0.0f, 0.0f, 1.0f}} //TODO experiment with this IG
+    {{1.0f, 1.0f, 0.0f, 1.0f}} //TODO experiment with this IG
   };
   renderPassInfo.clearValueCount = 1;
   renderPassInfo.pClearValues = &clearColor;

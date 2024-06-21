@@ -12,53 +12,27 @@
 int Vulkan::initVulkan()
 {
   m_WindowInfo.window = createWindow(&m_WindowInfo.frameBufferResized);
-
   createInstance(m_VkInstance, m_ValidationLayers); //Instance of vulkan, set up validation layers
-
   setupDebugMessenger(m_VkInstance, &m_DebugMessenger);
-
   createSurface(m_VkInstance, m_WindowInfo);
-
   pickPhysicalDevice(m_VkInstance, m_Devices, m_WindowInfo.surface, m_DeviceExtensions);
-
   createLogicalDevice(m_Devices, m_GraphicsQueue, m_PresentQueue, m_ValidationLayers, m_DeviceExtensions, m_WindowInfo.surface);
-
   createSwapChain(m_Devices, m_SwapchainInfo, m_WindowInfo);
-
   createImageViews(m_Devices.logicalDevice, m_SwapchainInfo);
-
   createRenderpass(m_Devices.logicalDevice, m_GraphicsInfo.renderPass, m_SwapchainInfo.swapChainImageFormat);
-
   createDescriptorSetLayout(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorSetLayout, m_GraphicsInfo.pipelineLayout);
-
   createGraphicsPipelines(m_Devices.logicalDevice, m_GraphicsInfo, m_SwapchainInfo.swapChainExtent, m_DescriptorSetInfo.descriptorSetLayout);
-
-
   createFrameBuffers(m_Devices.logicalDevice, m_SwapchainInfo, m_GraphicsInfo.renderPass);
-
   createCommandPool(m_Devices, m_WindowInfo.surface, m_CommandPool);
-
   createImageTexture(m_Devices, m_ImageTextureInfo, m_GraphicsQueue, m_CommandPool, "../images/sanic.png");
-
   createTextureImageView(m_Devices.logicalDevice, m_ImageTextureInfo);
-
   createTextureSampler(m_Devices, m_ImageTextureInfo.textureSampler);
-
   createVertexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Vertices);
-
   createIndexBuffer(m_Devices, m_BufferInfo, m_GraphicsQueue, m_CommandPool, m_Indices, m_Vertices);
-
   createUniformBuffers(m_Devices, m_BufferInfo);
-
-  GenLogTrace("Before descriptor pool");
   createDescriptorPool(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorPool);
-
-
-  GenLogTrace("Before descriptor sets");
   createDescriptorSets(m_Devices.logicalDevice, m_BufferInfo.uniformBuffers, m_ImageTextureInfo, m_DescriptorSetInfo);
-
-  createCommandBuffers(m_Devices.logicalDevice, m_CommandPool,m_CommandBuffers);
-
+  createCommandBuffers(m_Devices.logicalDevice, m_CommandPool, m_BufferInfo.commandBuffers);
   createSyncObjects(m_Devices.logicalDevice, m_SyncInfo);
   return 1;
 }
@@ -71,7 +45,8 @@ int Vulkan::update()
     drawFrame();
   }
   vkDeviceWaitIdle(m_Devices.logicalDevice);
-  return 1;
+
+  return !glfwWindowShouldClose(m_WindowInfo.window);
 }
 
 void Vulkan::drawFrame()
@@ -102,7 +77,7 @@ void Vulkan::drawFrame()
   vkResetFences(m_Devices.logicalDevice, 1, &m_SyncInfo.inFlightFences[m_CurrentFrame]); //Reset manually
 
   //Record command buffer that draws scene to image
-  vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+  vkResetCommandBuffer(m_BufferInfo.commandBuffers[m_CurrentFrame], 0);
 
 
 
@@ -120,7 +95,7 @@ void Vulkan::drawFrame()
   submitInfo.pWaitDstStageMask = waitStages;
 
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
+  submitInfo.pCommandBuffers = &m_BufferInfo.commandBuffers[m_CurrentFrame];
 
   VkSemaphore signalSemaphores[] = { m_SyncInfo.renderFinishedSemaphores[m_CurrentFrame] }; 
   submitInfo.signalSemaphoreCount = 1;
@@ -161,42 +136,41 @@ void Vulkan::drawFrame()
 
 void Vulkan::cleanup()
 {
-  VkDevice device = m_Devices.logicalDevice;
 
-  cleanupSwapChain(device, m_SwapchainInfo);
+  cleanupSwapChain(m_Devices.logicalDevice, m_SwapchainInfo);
 
-  vkDestroySampler(device, m_ImageTextureInfo.textureSampler, nullptr);
-  vkDestroyImageView(device, m_ImageTextureInfo.textureImageView, nullptr);
-
-
-  vkDestroyImage(device, m_ImageTextureInfo.image, nullptr);
-  vkFreeMemory(device, m_ImageTextureInfo.textureImageMemory, nullptr);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    vkDestroyBuffer(device, m_BufferInfo.uniformBuffers[i], nullptr);
-    vkFreeMemory(device, m_BufferInfo.uniformBuffersMemory[i], nullptr);
-  }
+  vkDestroySampler(m_Devices.logicalDevice, m_ImageTextureInfo.textureSampler, nullptr);
+  vkDestroyImageView(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageView, nullptr);
 
 
-  vkDestroyDescriptorSetLayout(device, m_DescriptorSetInfo.descriptorSetLayout, nullptr);
-  vkDestroyBuffer(device, m_BufferInfo.vertexBuffer, nullptr);
-  vkDestroyBuffer(device, m_BufferInfo.indexBuffer, nullptr);
-  vkFreeMemory(device, m_BufferInfo.vertexBufferMemory, nullptr);
-  vkFreeMemory(device, m_BufferInfo.indexBufferMemory, nullptr);
-
+  vkDestroyImage(m_Devices.logicalDevice, m_ImageTextureInfo.image, nullptr);
+  vkFreeMemory(m_Devices.logicalDevice, m_ImageTextureInfo.textureImageMemory, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    vkDestroySemaphore(device, m_SyncInfo.imageAvailableSemaphores[i], nullptr);
-    vkDestroySemaphore(device, m_SyncInfo.renderFinishedSemaphores[i], nullptr);
-    vkDestroyFence(device, m_SyncInfo.inFlightFences[i], nullptr);
+    vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.uniformBuffers[i], nullptr);
+    vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.uniformBuffersMemory[i], nullptr);
   }
 
-  vkDestroyCommandPool(device, m_CommandPool, nullptr);
-  vkDestroyPipelineLayout(device, m_GraphicsInfo.pipelineLayout, nullptr);
-  vkDestroyRenderPass(device, m_GraphicsInfo.renderPass, nullptr);
-  vkDestroyDevice(device, nullptr);
+
+  vkDestroyDescriptorSetLayout(m_Devices.logicalDevice, m_DescriptorSetInfo.descriptorSetLayout, nullptr);
+  vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.vertexBuffer, nullptr);
+  vkDestroyBuffer(m_Devices.logicalDevice, m_BufferInfo.indexBuffer, nullptr);
+  vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.vertexBufferMemory, nullptr);
+  vkFreeMemory(m_Devices.logicalDevice, m_BufferInfo.indexBufferMemory, nullptr);
+
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroySemaphore(m_Devices.logicalDevice, m_SyncInfo.imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(m_Devices.logicalDevice, m_SyncInfo.renderFinishedSemaphores[i], nullptr);
+    vkDestroyFence(m_Devices.logicalDevice, m_SyncInfo.inFlightFences[i], nullptr);
+  }
+
+  vkDestroyCommandPool(m_Devices.logicalDevice, m_CommandPool, nullptr);
+  vkDestroyPipelineLayout(m_Devices.logicalDevice, m_GraphicsInfo.pipelineLayout, nullptr);
+  vkDestroyRenderPass(m_Devices.logicalDevice, m_GraphicsInfo.renderPass, nullptr);
+  vkDestroyDevice(m_Devices.logicalDevice, nullptr);
 
   if (DEBUG)
     DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);

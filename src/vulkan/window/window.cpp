@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <ostream>
-#include <stdatomic.h>
 #include <vulkan/vulkan_core.h>
 
 

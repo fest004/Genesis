@@ -3,10 +3,11 @@
 #include "descriptorsetlayout.hpp"
 
 
-void createDescriptorSets(VkDevice& device, std::vector<VkBuffer>& uniformBuffers, Gen_ImageTexture& imageInfo, Gen_DescriptorSet& descriptorInfo)
+void createDescriptorSets(VkDevice& device, std::vector<VkBuffer>& uniformBuffers, Gen_ImageTexture& genImageInfo, Gen_DescriptorSet& descriptorInfo)
 {
 
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorInfo.descriptorSetLayout);
+
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorInfo.descriptorPool;
@@ -14,8 +15,9 @@ void createDescriptorSets(VkDevice& device, std::vector<VkBuffer>& uniformBuffer
     allocInfo.pSetLayouts = layouts.data();
 
     descriptorInfo.descriptorsSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(device, &allocInfo, descriptorInfo.descriptorsSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+    if (vkAllocateDescriptorSets(device, &allocInfo, descriptorInfo.descriptorsSets.data()) != VK_SUCCESS) 
+    {
+      GenLogCritical("Failed to allocate descriptor sets! {} {}", __FILE__, __LINE__);
     }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -26,8 +28,9 @@ void createDescriptorSets(VkDevice& device, std::vector<VkBuffer>& uniformBuffer
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = imageInfo.imageView;
-        imageInfo.sampler = imageInfo.sampler;
+
+        imageInfo.imageView = genImageInfo.textureImageView;
+        imageInfo.sampler = genImageInfo.textureSampler;
 
         std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 

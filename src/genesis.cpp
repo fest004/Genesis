@@ -25,8 +25,8 @@ void Genesis::loop()
   while (m_IsRunning)
   {
     m_IsRunning = m_Vulkan.update();
-
   }
+  cleanup();
 }
 
 void Genesis::cleanup()

@@ -50,7 +50,7 @@ class Vulkan
   VkQueue m_PresentQueue;
 
   VkCommandPool m_CommandPool;
-  std::vector<VkCommandBuffer> m_CommandBuffers;
+  // std::vector<VkCommandBuffer> m_CommandBuffers;
 
   uint32_t m_CurrentFrame = 0;
 
