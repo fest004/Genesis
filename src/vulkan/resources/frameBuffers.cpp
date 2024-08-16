@@ -86,10 +86,10 @@ void createIndexBuffer(Gen_Devices& devices, Gen_Buffers& bufferInfo, VkQueue& g
   vkUnmapMemory(devices.logicalDevice, stagingBufferMemory);
 
  
-  createBuffer(devices, bufferInfo.indexBuffer, bufferInfo.vertexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  createBuffer(devices, bufferInfo.indexBuffer, bufferInfo.indexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
-    copyBuffer(devices.logicalDevice, commandPool, graphicsQueue, stagingBuffer, bufferInfo.indexBuffer, bufferSize);
+  copyBuffer(devices.logicalDevice, commandPool, graphicsQueue, stagingBuffer, bufferInfo.indexBuffer, bufferSize);
 
   vkDestroyBuffer(devices.logicalDevice, stagingBuffer, nullptr);
   vkFreeMemory(devices.logicalDevice, stagingBufferMemory, nullptr);

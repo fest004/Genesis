@@ -36,7 +36,7 @@ void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQue
 
   createImage(devices, imageInfo.textureImageMemory, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, 
               VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageInfo.image, stagingBufferMemory);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageInfo.image);
 
   transitionImageLayout(devices.logicalDevice, graphicsQueue, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   copyBufferToImage(devices.logicalDevice, graphicsQueue, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
@@ -49,7 +49,7 @@ void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQue
 
 
 void createImage(Gen_Devices& devices, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
-                 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) 
+                 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image) 
 {
 VkImageCreateInfo imageInfo{};
   imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

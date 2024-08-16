@@ -31,7 +31,6 @@ void Genesis::loop()
 
 void Genesis::cleanup()
 {
-  m_Vulkan.cleanup();
   m_Logger.Shutdown();
 }
 

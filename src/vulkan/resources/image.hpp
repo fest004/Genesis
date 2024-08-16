@@ -5,19 +5,10 @@
 #include "layouttransition.hpp"
 
 
-void createImage(VkDevice& device, VkPhysicalDevice& physDevice, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
-                 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-
+void createImage(Gen_Devices& devices, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
+                 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image);
 
 void createImageTexture(Gen_Devices& devices, Gen_ImageTexture& imageInfo, VkQueue& graphicsQueue, VkCommandPool commandPool,  const char* filepath);
-
-
-
-
-void createImage(Gen_Devices& devices, VkDeviceMemory& textureImageMem, uint32_t width, uint32_t height, VkFormat format, 
-                 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-
-
 
 void copyBufferToImage(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
 

@@ -138,7 +138,6 @@ void Vulkan::drawFrame()
 
 void Vulkan::cleanup()
 {
-
   cleanupSwapChain(m_Devices.logicalDevice, m_SwapchainInfo);
 
   vkDestroyPipeline(m_Devices.logicalDevice, m_GraphicsInfo.graphicsPipeline, nullptr);
