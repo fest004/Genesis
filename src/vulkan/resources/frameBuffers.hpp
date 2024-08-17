@@ -4,29 +4,28 @@
 // overly object oriented
 
 
-uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+uint32_t find_memory_type(VkPhysicalDevice& physical_device, uint32_t type_filter, VkMemoryPropertyFlags properties);
 
-void createFrameBuffers(const VkDevice& device, Gen_Swapchain& swapChainInfo, VkRenderPass& renderpass);
+void create_framebuffers(const VkDevice& device, Gen_Swapchain& swap_chain_info, VkRenderPass& renderpass);
+
+void create_vertex_buffer(Gen_Devices& devices, Gen_Buffers& buffers, VkQueue& graphics_queue, VkCommandPool& command_pool, const std::vector<Vertex>& vertices);
 
 
-void createVertexBuffer(Gen_Devices& devices, Gen_Buffers& buffers, VkQueue& graphicsQueue, VkCommandPool& commandPool, const std::vector<Vertex>& vertices);
-
-
-void createBuffer(Gen_Devices& devices, VkBuffer& buffer, 
-                  VkDeviceMemory& deviceMemory, VkDeviceSize size, 
+void create_buffer(Gen_Devices& devices, VkBuffer& buffer, 
+                  VkDeviceMemory& device_memory, VkDeviceSize size, 
                   VkBufferUsageFlags usage, 
                   VkMemoryPropertyFlags properties);
 
 
 
-void copyBuffer(VkDevice device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-//void copyBuffer(VkDevice device, VkCommandPool& commandPool, VkQueue queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-void createIndexBuffer(Gen_Devices& devices, Gen_Buffers& bufferInfo, VkQueue& graphicsQueue, VkCommandPool& commandPool, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
+void copy_buffer(VkDevice device, VkCommandPool& command_pool, VkQueue& queue, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
+//void copy_buffer(VkDevice device, VkCommandPool& command_pool, VkQueue queue, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
+
+void create_index_buffer(Gen_Devices& devices, Gen_Buffers& buffer_info, VkQueue& graphics_queue, VkCommandPool& command_pool, const std::vector<uint16_t>& indices);
 
 
-
-VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool);
-void endSingleTimeCommands(VkDevice& device, VkQueue& graphicsQueue, VkCommandPool& commandPool, VkCommandBuffer& commandBuffer);
+VkCommandBuffer begin_single_time_commands(VkDevice& device, VkCommandPool& command_pool);
+void end_single_time_commands(VkDevice& device, VkQueue& graphics_queue, VkCommandPool& command_pool, VkCommandBuffer& command_buffer);
 
 
 

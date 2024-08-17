@@ -13,17 +13,21 @@ Validation Layers notice:
 */
 
 
-bool checkValidationLayers(const std::vector<const char*>& validationLayers);
+bool check_validation_layers(const std::vector<const char*>& validation_layers);
 
 //DebugMessenger stuff
-void setupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT* pDebugMessenger);
-VkResult CreateDebugUtilsMessengerEXT(VkInstance& instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
+void setup_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT* p_debug_messenger);
+
+
+VkResult create_debug_utils_messengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* p_create_info, const VkAllocationCallbacks* p_allocator, VkDebugUtilsMessengerEXT* p_debug_messenger);
+
+void destroy_debug_utils_messengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debug_messenger, const VkAllocationCallbacks* p_allocator);
+void populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback
 (
-  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, 
-  VkDebugUtilsMessageTypeFlagsEXT messageType, 
-  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, 
-  void* pUserData
+  VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, 
+  VkDebugUtilsMessageTypeFlagsEXT message_type, 
+  const VkDebugUtilsMessengerCallbackDataEXT* p_callback_data, 
+  void* p_user_data
 );

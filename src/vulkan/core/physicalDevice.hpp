@@ -9,10 +9,10 @@
 
 
 
-int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions);
-bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions);
-bool checkDeviceExtensionSupport(VkPhysicalDevice& device, std::vector<const char*> deviceExtensions);
-int getDeviceSuitability(VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions);
+int pick_physical_device(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR& surface, std::vector<const char*> device_extensions);
+bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR& surface, std::vector<const char*> device_extensions);
+bool check_device_extension_support(VkPhysicalDevice& device, std::vector<const char*> device_extensions);
+int get_device_suitability(VkPhysicalDevice& physical_device, VkSurfaceKHR& surface, std::vector<const char*> device_extensions);
 
 //
 

@@ -5,6 +5,6 @@
 #include "../../core.h"
 
 
-GLFWwindow* createWindow(bool* windowResized);
-void createSurface(VkInstance& instance, Gen_Window& windowInfo);
+GLFWwindow* create_window(bool* window_resized);
+void create_surface(VkInstance& instance, Gen_Window& window_info);
 

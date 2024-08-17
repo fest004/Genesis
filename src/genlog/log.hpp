@@ -12,8 +12,8 @@ public:
   Log() = default;
   ~Log() = default;
 
-  void Init();
-  void Shutdown();
+  void init();
+  void shutdown();
 };
 
 #endif

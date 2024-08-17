@@ -2,31 +2,32 @@
 #include <vulkan/vulkan_core.h>
 
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice& device, VkSurfaceKHR& surface)
+QueueFamilyIndices find_queue_families(VkPhysicalDevice& device, VkSurfaceKHR& surface)
 {
   QueueFamilyIndices indices;
 
   //Same old pattern of finding stuff
-  uint32_t queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+  uint32_t queue_family_count = 0;
+  vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
 
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+  std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+  vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
 
   int i = 0;
-  for (const auto& queueFamily : queueFamilies)
+  for (const auto& queue_family : queue_families)
   {
-    if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-      indices.graphicsFamily = i;
+    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+      indices.graphics_family = i;
 
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-
-    if (presentSupport == 1)
-      indices.presentFamily = i;
+    VkBool32 present_support = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
 
 
-    if (indices.isComplete())
+    if (present_support == 1)
+      indices.present_family = i;
+
+
+    if (indices.is_complete())
       break;
 
     i++;

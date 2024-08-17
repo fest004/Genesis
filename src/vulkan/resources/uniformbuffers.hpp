@@ -1,6 +1,6 @@
 #include "../../core.h"
 
 
-void updateUniformBuffer(std::vector<void*>& uniformBuffersMapped, const uint32_t& currentImage, const VkExtent2D& extent);
-void createUniformBuffers(Gen_Devices& devices, Gen_Buffers& bufferInfo);
+void update_uniform_buffer(std::vector<void*>& uniform_buffers_mapped, const uint32_t& current_image, const VkExtent2D& extent);
+void create_uniform_buffers(Gen_Devices& devices, Gen_Buffers& buffer_info);
 

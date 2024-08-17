@@ -6,9 +6,9 @@
 
 
 
-static void frameBufferResizedCallback(GLFWwindow* window, int width, int height);
+static void frame_buffer_resized_callback(GLFWwindow* window, int width, int height);
 
-GLFWwindow* createWindow(bool* windowResized)
+GLFWwindow* create_window(bool* window_resized)
 {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -16,12 +16,12 @@ GLFWwindow* createWindow(bool* windowResized)
   GLFWwindow* window;
 
   window = glfwCreateWindow(WIDTH, HEIGHT, "Genesis", nullptr, nullptr);
-  glfwSetWindowUserPointer(window, windowResized);
-  glfwSetFramebufferSizeCallback(window, frameBufferResizedCallback);
+  glfwSetWindowUserPointer(window, window_resized);
+  glfwSetFramebufferSizeCallback(window, frame_buffer_resized_callback);
   return window;
 }
 
-static void frameBufferResizedCallback(GLFWwindow* window, int width, int height)
+static void frame_buffer_resized_callback(GLFWwindow* window, int width, int height)
 {
   auto flag = reinterpret_cast<bool*>(glfwGetWindowUserPointer(window));
   *flag = true;
@@ -30,9 +30,9 @@ static void frameBufferResizedCallback(GLFWwindow* window, int width, int height
 }
 
 
-void createSurface(VkInstance& instance, Gen_Window& windowInfo)
+void create_surface(VkInstance& instance, Gen_Window& window_info)
 {
-  if (glfwCreateWindowSurface(instance, windowInfo.window, nullptr, &windowInfo.surface) != VK_SUCCESS) 
+  if (glfwCreateWindowSurface(instance, window_info.window, nullptr, &window_info.surface) != VK_SUCCESS) 
   {
     GenLogCritical("Failed to create Window surface!");
   }

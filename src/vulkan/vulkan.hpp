@@ -22,40 +22,40 @@
 class Vulkan
 {
   public:
-    int initVulkan(); //Initializes all relevant Vulkan modules
+    int init_vulkan(); //Initializes all relevant Vulkan modules
     void cleanup();
     int update();
-    void drawFrame();
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void draw_frame();
+    uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 
   private:
 
   //Runtime
-  VkInstance m_VkInstance;
-  VkDebugUtilsMessengerEXT m_DebugMessenger;
-  const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+  VkInstance m_vk_instance;
+  VkDebugUtilsMessengerEXT m_debug_messenger;
+  const std::vector<const char*> m_validation_layers = { "VK_LAYER_KHRONOS_validation" };
 
-  Gen_Devices m_Devices;
-  Gen_Swapchain m_SwapchainInfo;
-  Gen_Graphics m_GraphicsInfo;
-  Gen_Window m_WindowInfo;
-  Gen_Buffers m_BufferInfo;
-  Gen_ImageTexture m_ImageTextureInfo;
-  Gen_DescriptorSet m_DescriptorSetInfo;
-  Gen_SyncObjects m_SyncInfo;
+  Gen_Devices m_devices;
+  Gen_Swapchain m_swapchain_info;
+  Gen_Graphics m_graphics_info;
+  Gen_Window m_window_info;
+  Gen_Buffers m_buffer_info;
+  Gen_ImageTexture m_image_texture_info;
+  Gen_DescriptorSet m_descriptor_set_info;
+  Gen_SyncObjects m_sync_info;
 
   //Queues
-  VkQueue m_GraphicsQueue;
-  VkQueue m_PresentQueue;
+  VkQueue m_graphics_queue;
+  VkQueue m_present_queue;
 
-  VkCommandPool m_CommandPool;
+  VkCommandPool m_command_pool;
 
-  uint32_t m_CurrentFrame = 0;
+  uint32_t m_current_frame = 0;
 
   UniformBufferObject m_UBO;
 
-  const std::vector<Vertex> m_Vertices = 
+  const std::vector<Vertex> m_vertices = 
   {
     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
     {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
@@ -64,13 +64,13 @@ class Vulkan
   };
 
 
-  const std::vector<uint16_t> m_Indices
+  const std::vector<uint16_t> m_indices
   {
     {0, 1, 2, 2, 3, 0}
   };
 
 
-  const std::vector<const char*> m_DeviceExtensions = 
+  const std::vector<const char*> m_device_extensions = 
   {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
   };

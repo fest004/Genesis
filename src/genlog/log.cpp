@@ -1,16 +1,16 @@
 #include "log.hpp"
 #include "logger.hpp"
 
-void Log::Init() 
+void Log::init() 
 {
-  auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  consoleSink->set_pattern("%^[%H:%M:%S:%e] %v%$");
+  auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  console_sink->set_pattern("%^[%H:%M:%S:%e] %v%$");
 
-  std::vector<spdlog::sink_ptr> sinks{consoleSink};
-  auto Logger = std::make_shared<spdlog::logger>(GENLOG_DEFAULT_LOGGER_NAME, sinks.begin(), sinks.end());
-  Logger->set_level(spdlog::level::trace);
-  Logger->flush_on(spdlog::level::trace);
-  spdlog::register_logger(Logger);
+  std::vector<spdlog::sink_ptr> sinks{console_sink};
+  auto logger = std::make_shared<spdlog::logger>(GENLOG_DEFAULT_LOGGER_NAME, sinks.begin(), sinks.end());
+  logger->set_level(spdlog::level::trace);
+  logger->flush_on(spdlog::level::trace);
+  spdlog::register_logger(logger);
 }
 
-void Log::Shutdown() { spdlog::shutdown(); }
+void Log::shutdown() { spdlog::shutdown(); }

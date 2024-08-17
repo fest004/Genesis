@@ -7,14 +7,14 @@
 struct QueueFamilyIndices
 {
   //Optional wrapper to indicate a non initialized value is not a valid queue family
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
+  std::optional<uint32_t> graphics_family;
+  std::optional<uint32_t> present_family;
 
-  bool isComplete() 
+  bool is_complete() 
   {
-    return graphicsFamily.has_value() && presentFamily.has_value();
+    return graphics_family.has_value() && present_family.has_value();
   }
 };
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice& device, VkSurfaceKHR& surface);
+QueueFamilyIndices find_queue_families(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 

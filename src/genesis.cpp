@@ -6,13 +6,12 @@ void Genesis::run()
   init();
   loop();
   cleanup();
-
 }
 
 int Genesis::init()
 {
-  m_Logger.Init();
-  m_Vulkan.initVulkan();
+  m_logger.init();
+  m_vulkan.init_vulkan();
 
   GenLogTrace("Genesis Initialization succeeded!");
 
@@ -22,16 +21,16 @@ int Genesis::init()
 
 void Genesis::loop()
 {
-  while (m_IsRunning)
+  while (m_is_running)
   {
-    m_IsRunning = m_Vulkan.update();
+    m_is_running = m_vulkan.update();
   }
-  cleanup();
 }
 
 void Genesis::cleanup()
 {
-  m_Logger.Shutdown();
+  m_vulkan.cleanup();
+  m_logger.shutdown();
 }
 
 

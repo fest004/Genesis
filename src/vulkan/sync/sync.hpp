@@ -1,5 +1,5 @@
 #include "../../core.h"
 
 
-void createSyncObjects(VkDevice& device, Gen_SyncObjects& syncObjects);
+void create_sync_objects(VkDevice& device, Gen_SyncObjects& sync_objects);
 

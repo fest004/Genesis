@@ -7,12 +7,12 @@
 
 
 
-void updateUniformBuffer(std::vector<void*>& uniformBuffersMapped, const uint32_t& currentImage, const VkExtent2D& extent)
+void update_uniform_buffer(std::vector<void*>& uniform_buffers_mapped, const uint32_t& current_image, const VkExtent2D& extent)
 {
-  static auto startTime = std::chrono::high_resolution_clock::now();
+  static auto start_time = std::chrono::high_resolution_clock::now();
 
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+  auto current_time = std::chrono::high_resolution_clock::now();
+  float time = std::chrono::duration<float, std::chrono::seconds::period>(current_time - start_time).count();
   
   UniformBufferObject ubo{};
 
@@ -27,22 +27,22 @@ void updateUniformBuffer(std::vector<void*>& uniformBuffersMapped, const uint32_
 
   ubo.proj[1][1] *= -1;
 
-  memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+  memcpy(uniform_buffers_mapped[current_image], &ubo, sizeof(ubo));
 }
 
 
-void createUniformBuffers(Gen_Devices& devices, Gen_Buffers& bufferInfo)
+void create_uniform_buffers(Gen_Devices& devices, Gen_Buffers& buffer_info)
 {
   VkDeviceSize size = sizeof(UniformBufferObject);
 
-  bufferInfo.uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  bufferInfo.uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  bufferInfo.uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+  buffer_info.uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+  buffer_info.uniform_buffers_memory.resize(MAX_FRAMES_IN_FLIGHT);
+  buffer_info.uniform_buffers_mapped.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    createBuffer(devices, bufferInfo.uniformBuffers[i], bufferInfo.uniformBuffersMemory[i], size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    vkMapMemory(devices.logicalDevice, bufferInfo.uniformBuffersMemory[i], 0, size, 0,  &bufferInfo.uniformBuffersMapped[i]);
+    create_buffer(devices, buffer_info.uniform_buffers[i], buffer_info.uniform_buffers_memory[i], size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vkMapMemory(devices.logical_device, buffer_info.uniform_buffers_memory[i], 0, size, 0,  &buffer_info.uniform_buffers_mapped[i]);
   }
 
 }

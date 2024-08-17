@@ -8,24 +8,24 @@
 
 
 //Pick a GPU we can use for our intentions
-int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions)
+int pick_physical_device(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR& surface, std::vector<const char*> device_extensions)
 {
-  uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  uint32_t device_count = 0;
+  vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 
-  if (deviceCount < 1)
+  if (device_count < 1)
     GenLogCritical("No physical devices found with Vulkan Support! Exiting...");
 
-  std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
+  std::vector<VkPhysicalDevice> physical_devices(device_count);
+  vkEnumeratePhysicalDevices(instance, &device_count, physical_devices.data());
 
-  GenLogTrace("deviceCount: {}", deviceCount);
+  GenLogTrace("device_count: {}", device_count);
 
-  for (const auto& physDevice : physicalDevices) 
+  for (const auto& phys_device : physical_devices) 
   {
-    if (isDeviceSuitable(physDevice, surface, deviceExtensions)) 
+    if (is_device_suitable(phys_device, surface, device_extensions)) 
     {
-      devices.physicalDevice = physDevice;
+      devices.physical_device = phys_device;
       return 1;
     }
   }
@@ -35,68 +35,68 @@ int pickPhysicalDevice(VkInstance& instance, Gen_Devices& devices, VkSurfaceKHR&
   return 0;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice physDevice, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions) 
+bool is_device_suitable(VkPhysicalDevice phys_device, VkSurfaceKHR& surface, std::vector<const char*> device_extensions) 
 {
 
-    std::cout << &physDevice << std::endl;
+    std::cout << &phys_device << std::endl;
 
-    QueueFamilyIndices indices = findQueueFamilies(physDevice, surface);
+    QueueFamilyIndices indices = find_queue_families(phys_device, surface);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(physDevice, deviceExtensions);
+    bool extensions_supported = check_device_extension_support(phys_device, device_extensions);
 
-    bool swapChainAdequate = false;
-    if (extensionsSupported)
+    bool swap_chain_adequate = false;
+    if (extensions_supported)
     {
-      SwapChainSupportDetails swapChainSupport = querySwapchainSupport(physDevice, surface);
-      swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+      SwapChainSupportDetails swap_chain_support = query_swapchain_support(phys_device, surface);
+      swap_chain_adequate = !swap_chain_support.formats.empty() && !swap_chain_support.presentModes.empty();
     }
     
-    VkPhysicalDeviceFeatures supportedFeatures;
-    vkGetPhysicalDeviceFeatures(physDevice, &supportedFeatures);
+    VkPhysicalDeviceFeatures supported_features;
+    vkGetPhysicalDeviceFeatures(phys_device, &supported_features);
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+    return indices.is_complete() && extensions_supported && swap_chain_adequate && supported_features.samplerAnisotropy;
 }
 
-bool checkDeviceExtensionSupport(VkPhysicalDevice& device, std::vector<const char*> deviceExtensions)
+bool check_device_extension_support(VkPhysicalDevice& device, std::vector<const char*> device_extensions)
 {
-  uint32_t extensionCount;
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+  uint32_t extension_count;
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, nullptr);
 
-  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+  std::vector<VkExtensionProperties> available_extensions(extension_count);
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, available_extensions.data());
 
-  std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+  std::set<std::string> required_extensions(device_extensions.begin(), device_extensions.end());
 
-  for (const auto& extension : availableExtensions)
+  for (const auto& extension : available_extensions)
   {
-    requiredExtensions.erase(extension.extensionName);
+    required_extensions.erase(extension.extensionName);
   }
 
-  return requiredExtensions.empty();
+  return required_extensions.empty();
 }
 
 
 //Function that rates how good our device is for our needs
-int getDeviceSuitability(VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface, std::vector<const char*> deviceExtensions)
+int get_device_suitability(VkPhysicalDevice& physical_device, VkSurfaceKHR& surface, std::vector<const char*> device_extensions)
 {
-  VkPhysicalDeviceProperties deviceProperties;
-  vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+  VkPhysicalDeviceProperties device_properties;
+  vkGetPhysicalDeviceProperties(physical_device, &device_properties);
 
-  VkPhysicalDeviceFeatures deviceFeatures;
-  vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+  VkPhysicalDeviceFeatures device_features;
+  vkGetPhysicalDeviceFeatures(physical_device, &device_features);
 
 
   int score = 0;
 
-  if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+  if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
     score += 1000;
 
-  score += deviceProperties.limits.maxImageDimension2D;
+  score += device_properties.limits.maxImageDimension2D;
 
-  if (!deviceFeatures.geometryShader)
+  if (!device_features.geometryShader)
     return 0;
 
-   if (!isDeviceSuitable(physicalDevice, surface, deviceExtensions))
+   if (!is_device_suitable(physical_device, surface, device_extensions))
     return 0;
 
 

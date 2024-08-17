@@ -4,52 +4,52 @@
 
 
 
-void transitionImageLayout(VkDevice& device, VkQueue& queue, VkCommandPool& commandPool, const VkImage& image, const VkFormat& format, const VkImageLayout& oldLayout, const VkImageLayout newLayout) 
+void transition_image_layout(VkDevice& device, VkQueue& queue, VkCommandPool& command_pool, const VkImage& image, const VkFormat& format, const VkImageLayout& old_layout, const VkImageLayout new_layout) 
 {
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+  VkCommandBuffer command_buffer = begin_single_time_commands(device, command_pool);
 
-  VkImageMemoryBarrier memoryBarrier{};
-  memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  memoryBarrier.oldLayout = oldLayout;
-  memoryBarrier.newLayout = newLayout;
+  VkImageMemoryBarrier memory_barrier{};
+  memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  memory_barrier.oldLayout= old_layout;
+  memory_barrier.newLayout = new_layout;
 
-  memoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  memoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-  memoryBarrier.image = image;
-  memoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  memoryBarrier.subresourceRange.baseMipLevel = 0;
-  memoryBarrier.subresourceRange.levelCount = 1;
-  memoryBarrier.subresourceRange.baseArrayLayer = 0;
-  memoryBarrier.subresourceRange.layerCount = 1;
+  memory_barrier.image = image;
+  memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  memory_barrier.subresourceRange.baseMipLevel = 0;
+  memory_barrier.subresourceRange.levelCount = 1;
+  memory_barrier.subresourceRange.baseArrayLayer = 0;
+  memory_barrier.subresourceRange.layerCount= 1;
 
   
-  VkPipelineStageFlags srcStage;
-  VkPipelineStageFlags dstStage;
+  VkPipelineStageFlags src_stage;
+  VkPipelineStageFlags dst_stage;
 
-  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+  if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
   {
-    memoryBarrier.srcAccessMask = 0;
-    memoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memory_barrier.srcAccessMask = 0;
+    memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-    srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
   }
-  else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+  else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
   {
-    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
   }
   else 
     GenLogCritical("Invalid layout transition! In layouttransition.cpp");
 
 
-  vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
+  vkCmdPipelineBarrier(command_buffer, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &memory_barrier);
   
-  endSingleTimeCommands(device, queue, commandPool, commandBuffer);
+  end_single_time_commands(device, queue, command_pool, command_buffer);
 }
 
 

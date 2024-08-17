@@ -14,8 +14,8 @@ private:
   int init();
 
 
-  Vulkan m_Vulkan;
-  bool m_IsRunning = true;
-  Log m_Logger;
+  Vulkan m_vulkan;
+  bool m_is_running = true;
+  Log m_logger;
 
 };

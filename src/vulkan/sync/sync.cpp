@@ -3,19 +3,19 @@
 #include <vulkan/vulkan_core.h>
 
 
-void createSyncObjects(VkDevice& device, Gen_SyncObjects& syncObjects)
+void create_sync_objects(VkDevice& device, Gen_SyncObjects& sync_objects)
 {
-  syncObjects.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  sync_objects.image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  sync_objects.render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  sync_objects.in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
 
 
-  VkSemaphoreCreateInfo semaphoreInfo{};
-  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO; 
+  VkSemaphoreCreateInfo semaphore_info{};
+  semaphore_info.sType= VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO; 
 
-  VkFenceCreateInfo fenceInfo{};
-  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+  VkFenceCreateInfo fence_info{};
+  fence_info.sType= VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 
 
@@ -23,9 +23,9 @@ void createSyncObjects(VkDevice& device, Gen_SyncObjects& syncObjects)
   {
 
   if (
-      vkCreateSemaphore(device, &semaphoreInfo, nullptr, &syncObjects.imageAvailableSemaphores[i]) != VK_SUCCESS ||
-      vkCreateSemaphore(device, &semaphoreInfo, nullptr, &syncObjects.renderFinishedSemaphores[i])   != VK_SUCCESS || 
-      vkCreateFence(device, &fenceInfo, nullptr, &syncObjects.inFlightFences[i]) != VK_SUCCESS
+      vkCreateSemaphore(device, &semaphore_info, nullptr, &sync_objects.image_available_semaphores[i]) != VK_SUCCESS ||
+      vkCreateSemaphore(device, &semaphore_info, nullptr, &sync_objects.render_finished_semaphores[i])   != VK_SUCCESS || 
+      vkCreateFence(device, &fence_info, nullptr, &sync_objects.in_flight_fences[i]) != VK_SUCCESS
      )
     {
       GenLogCritical("Failed to create sync objects! In sync.cpp");
