@@ -5,8 +5,14 @@
 #include <vulkan/vulkan_core.h>
 
 
+#include "../vulkan.hpp"
+
+
 
 static void frame_buffer_resized_callback(GLFWwindow* window, int width, int height);
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+glm::vec3 camera_position(0.0f, 0.0f, 3.0f);
 
 GLFWwindow* create_window(bool* window_resized)
 {

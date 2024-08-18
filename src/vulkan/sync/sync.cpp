@@ -28,7 +28,7 @@ void create_sync_objects(VkDevice& device, Gen_SyncObjects& sync_objects)
       vkCreateFence(device, &fence_info, nullptr, &sync_objects.in_flight_fences[i]) != VK_SUCCESS
      )
     {
-      GenLogCritical("Failed to create sync objects! In sync.cpp");
+     GenLogCritical("Failed to create sync objects! In sync.cpp");
     }
   }
 

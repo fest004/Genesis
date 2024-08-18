@@ -1,5 +1,6 @@
 #include "uniformbuffers.hpp"
 #include <chrono>
+#include <cstdio>
 #include <vulkan/vulkan_core.h>
 #include "frameBuffers.hpp"
 
@@ -7,7 +8,7 @@
 
 
 
-void update_uniform_buffer(std::vector<void*>& uniform_buffers_mapped, const uint32_t& current_image, const VkExtent2D& extent)
+void update_uniform_buffer(std::vector<void*>& uniform_buffers_mapped, const uint32_t& current_image, const VkExtent2D& extent, Gen_Camera camera)
 {
   static auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -16,13 +17,16 @@ void update_uniform_buffer(std::vector<void*>& uniform_buffers_mapped, const uin
   
   UniformBufferObject ubo{};
 
+
+  GenLogTrace("Camera Position: x={}, y={}, z={}", camera.cam_pos.x, camera.cam_pos.y, camera.cam_pos.z);
+
   //Rotating the current image by a factor scaling with time passed
   ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(180.0f * 1), glm::vec3(0.0f, 0.0f, 1.0f));
 
-  //Look at above 45 deg angle
-  ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  /* Camera stuff */
+  ubo.view = glm::lookAt(camera.cam_pos, camera.cam_pos + camera.cam_front, camera.cam_up);
 
-  ubo.proj = glm::perspective(glm::radians(45.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
+  ubo.proj = glm::perspective(glm::radians(60.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
 
 
   ubo.proj[1][1] *= -1;

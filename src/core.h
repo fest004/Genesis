@@ -58,6 +58,13 @@ struct Gen_Graphics
   VkRenderPass render_pass;
 };
 
+struct Gen_Camera
+{
+  glm::vec3 cam_pos =   { 0.0f, 0.0f, 3.0f  };
+  glm::vec3 cam_front = { 0.0f, 0.0f, -1.0f };
+  glm::vec3 cam_up =    { 1.0f, 0.0f, 0.0f  };
+};
+
 struct Gen_Swapchain
 {
   SwapChainSupportDetails swap_chain_support_details;
@@ -127,9 +134,9 @@ struct Vertex
         return binding_description;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> get_attribute_descriptions() 
+    static std::array<VkVertexInputAttributeDescription, 2> get_attribute_descriptions() 
     {
-        std::array<VkVertexInputAttributeDescription, 3> attribute_descriptions{};
+        std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions{};
 
         attribute_descriptions[0].binding = 0;
         attribute_descriptions[0].location = 0;
@@ -141,10 +148,12 @@ struct Vertex
         attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attribute_descriptions[1].offset = offsetof(Vertex, color);
 
+    /*
         attribute_descriptions[2].binding = 0;
         attribute_descriptions[2].location = 2;
         attribute_descriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attribute_descriptions[2].offset = offsetof(Vertex, tex_coord);
+    */
 
         return attribute_descriptions;
     }

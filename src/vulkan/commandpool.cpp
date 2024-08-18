@@ -30,7 +30,7 @@ void record_command_buffer(Gen_Graphics& graphics_info, Gen_Swapchain& swapchain
    
     VkClearValue clear_color = 
     {
-        {{0.2f, 0.2f, 0.2f, 1.0f}} // TODO: Experiment with this color
+        {{0.01f, 0.01f, 0.01f, 1.0f}} // TODO: Experiment with this color
     };
     render_pass_info.clearValueCount = 1;
     render_pass_info.pClearValues = &clear_color;

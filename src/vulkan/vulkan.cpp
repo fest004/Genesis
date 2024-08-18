@@ -9,9 +9,15 @@
 #include <ostream>
 #include <vulkan/vulkan_core.h>
 
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
 int Vulkan::init_vulkan()
 {
   m_window_info.window = create_window(&m_window_info.frame_buffer_resized);
+  m_last_time = glfwGetTime();
+  glfwSetCursorPosCallback(m_window_info.window, mouse_callback);
+
   create_instance(m_vk_instance, m_validation_layers); //Instance of vulkan, set up validation layers
   setup_debug_messenger(m_vk_instance, &m_debug_messenger);
   create_surface(m_vk_instance, m_window_info);
@@ -27,9 +33,9 @@ int Vulkan::init_vulkan()
 
   create_framebuffers(m_devices.logical_device, m_swapchain_info, m_graphics_info.render_pass);
   create_command_pool(m_devices, m_window_info.surface, m_command_pool);
-  create_image_texture(m_devices, m_image_texture_info, m_graphics_queue, m_command_pool, "../images/sanic.png");
-  create_texture_image_view(m_devices.logical_device, m_image_texture_info);
-  create_texture_sampler(m_devices, m_image_texture_info.texture_sampler);
+  //create_image_texture(m_devices, m_image_texture_info, m_graphics_queue, m_command_pool, "../images/sanic.png");
+  //create_texture_image_view(m_devices.logical_device, m_image_texture_info);
+  //create_texture_sampler(m_devices, m_image_texture_info.texture_sampler);
   create_vertex_buffer(m_devices, m_buffer_info, m_graphics_queue, m_command_pool, m_vertices);
   create_index_buffer(m_devices, m_buffer_info, m_graphics_queue, m_command_pool, m_indices);
   create_uniform_buffers(m_devices, m_buffer_info);
@@ -44,14 +50,95 @@ int Vulkan::init_vulkan()
 
 int Vulkan::update()
 {
+
   if (!glfwWindowShouldClose(m_window_info.window))
   {
     glfwPollEvents();
+    float current_time = glfwGetTime();
+    m_delta_time = static_cast<float>(current_time - m_last_time);
+    m_last_time = current_time;
+
+    /* GenLogInfo("DT: {}", m_delta_time); */
+
+    process_input(m_window_info.window, m_delta_time);
     draw_frame();
   }
   vkDeviceWaitIdle(m_devices.logical_device);
 
   return !glfwWindowShouldClose(m_window_info.window);
+}
+
+
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) 
+{
+    Vulkan* vulkan_app = static_cast<Vulkan*>(glfwGetWindowUserPointer(window));
+
+    /* GenLogInfo("Mouse was moved: xpos={}, ypos={}", xpos, ypos); */
+
+    if (!vulkan_app)
+    {
+        GenLogCritical("Cant get vulkan instance!");
+    }
+        
+
+    static float yaw = -90.0f;  // Yaw starts pointing along the negative Z-axis
+    static float pitch = 0.0f;
+
+    static double lastX = 400, lastY = 300;  // Initially set to the center of the window
+    static bool firstMouse = true;
+
+    static float mouse_sens = 1.25f;
+
+    if (firstMouse) 
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to top
+    lastX = xpos;
+    lastY = ypos;
+
+    xoffset *= mouse_sens;
+    yoffset *= mouse_sens;
+
+    yaw   += xoffset;
+    pitch += yoffset;
+
+    /* Constrain the pitch so the screen doesn't flip */
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    // Update the camera front vector
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    vulkan_app->set_cam_front(glm::normalize(front));  // Call the class method
+}
+
+void Vulkan::set_cam_front(glm::vec3 front)
+{
+    m_cam.cam_front = front;
+}
+
+void Vulkan::process_input(GLFWwindow* window, float dt)
+{
+    float velocity  = m_ms * dt;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        m_cam.cam_pos += m_cam.cam_front * velocity;  // Move forward
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        m_cam.cam_pos -= m_cam.cam_front * velocity;  // Move backward
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        m_cam.cam_pos -= glm::normalize(glm::cross(m_cam.cam_front , m_cam.cam_up)) * velocity; // Move left
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        m_cam.cam_pos += glm::normalize(glm::cross(m_cam.cam_front, m_cam.cam_up)) * velocity; // Move right
 }
 
 
@@ -76,7 +163,7 @@ void Vulkan::draw_frame()
         GenLogCritical("Failed to acquire swap chain image! In vulkan.cpp:draw_frame()");
     }
 
-    update_uniform_buffer(m_buffer_info.uniform_buffers_mapped, m_current_frame, m_swapchain_info.swap_chain_extent);
+    update_uniform_buffer(m_buffer_info.uniform_buffers_mapped, m_current_frame, m_swapchain_info.swap_chain_extent, m_cam);
     vkResetFences(m_devices.logical_device, 1, &m_sync_info.in_flight_fences[m_current_frame]); // Reset manually
 
     // Record command buffer that draws scene to image

@@ -28,6 +28,8 @@ class Vulkan
     void draw_frame();
     uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
 
+    void process_input(GLFWwindow* window, float dt);
+    void set_cam_front(glm::vec3 front);
 
   private:
 
@@ -44,12 +46,27 @@ class Vulkan
   Gen_ImageTexture m_image_texture_info;
   Gen_DescriptorSet m_descriptor_set_info;
   Gen_SyncObjects m_sync_info;
+  Gen_Camera m_cam;
 
   //Queues
   VkQueue m_graphics_queue;
   VkQueue m_present_queue;
 
   VkCommandPool m_command_pool;
+
+  float m_ms = 1.25;
+  float m_mouse_sens;
+
+  float m_yaw;
+  float m_pitch;
+  double m_last_x;
+  double m_last_y;
+  bool m_first_mouse; 
+
+
+  float m_delta_time;
+  float m_last_time;
+
 
   uint32_t m_current_frame = 0;
 
